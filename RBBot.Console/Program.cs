@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
-namespace RBBot.Core
+namespace RBBot.Console
 {
-    public class Class1
+    public class Program
     {
-        public Class1()
+        public static void Main(string[] args)
         {
+
         }
     }
 }
