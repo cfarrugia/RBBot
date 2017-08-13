@@ -4,8 +4,30 @@
     "emitEntryPoint": true
   },
 
+  "ConnectionStrings": {
+    "RBBot": "Data Source=localhost\\sql2016;Initial Catalog=RBBot;Integrated Security=True"
+  },
+
+  "Logging": {
+    "IncludeScopes": false,
+    "LogLevel": {
+      "Default": "Debug",
+      "System": "Information",
+      "Microsoft": "Information"
+    }
+  },
+
+
+
   "dependencies": {
-    "Microsoft.NETCore.App": "1.0.4"
+    "Microsoft.Extensions.Configuration": "1.0.0",
+    "Microsoft.NETCore.App": "1.0.4",
+    "Newtonsoft.Json": "10.0.3",
+    "RBBot.Core": "1.0.0-*",
+    "System.Net.WebSockets.Client": "4.3.1"
+  },
+  "runtimes": {
+    "win10-x64": {}
   },
 
   "frameworks": {
