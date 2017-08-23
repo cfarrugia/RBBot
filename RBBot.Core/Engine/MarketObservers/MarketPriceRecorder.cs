@@ -11,29 +11,7 @@ using RBBot.Core.Models;
 namespace RBBot.Core.Engine.MarketObservers
 {
 
-    public class TradePairSpread
-    {
 
-
-        /// <summary>
-        /// Think of the trade pair as the key of the object.
-        /// </summary>
-        TradePair TradePair { get; set; }
-
-        /// <summary>
-        /// Each trade pair stores a dictionary of exchanges and their current values.
-        /// </summary>
-        //Dictionary<Exchange, decimal>
-
-        ExchangeTradePair MinimumValuedPair { get; set; }
-        ExchangeTradePair MaximumValuedPair { get; set; }
-        decimal MinimumPrice { get; set; }
-        decimal MaximumPrice { get; set; }
-
-
-
-        
-    }
 
     /// <summary>
     /// On a price change, this market price recorder will just record to db asynchronously.
@@ -41,12 +19,12 @@ namespace RBBot.Core.Engine.MarketObservers
     public class MarketPriceRecorder : IMarketPriceObserver
     {
 
+        #region Singleton Initialization
+
         private static volatile MarketPriceRecorder instance;
         private static object syncRoot = new Object();
 
         private MarketPriceRecorder() { }
-
-        private ConcurrentDictionary<TradePair, TradePairSpread> spreadPerTradePair = new ConcurrentDictionary<TradePair, TradePairSpread>();
 
         /// <summary>
         /// We just want one instance of the market price observer.
@@ -67,7 +45,10 @@ namespace RBBot.Core.Engine.MarketObservers
                 return instance;
             }
         }
-        
+
+        #endregion
+
+
         /// <summary>
         /// On market price change this is called to persist the information to db.
         /// </summary>
@@ -85,7 +66,7 @@ namespace RBBot.Core.Engine.MarketObservers
                 });
 
                 // Write to console.
-                Console.WriteLine($"Price Change on {change.ExchangeTradePair.Exchange.Name} for {change.ExchangeTradePair.TradePair.FromCurrency.Code} - {change.ExchangeTradePair.TradePair.ToCurrency.Code}. New Price: {change.Price}");
+                //Console.WriteLine($"Price Change on {change.ExchangeTradePair.Exchange.Name} for {change.ExchangeTradePair.TradePair.FromCurrency.Code} - {change.ExchangeTradePair.TradePair.ToCurrency.Code}. New Price: {change.Price}");
                 
                 await ctx.SaveChangesAsync();
 

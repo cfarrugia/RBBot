@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using RBBot.Core.Database;
 using RBBot.Core.Engine.MarketObservers;
 using RBBot.Core.Exchanges;
@@ -44,7 +45,7 @@ namespace RBBot.Core.Engine
                     foreach (var exTradePair in exchange.ExchangeTradePair)
                     {
 
-                        System.Console.WriteLine($"Exchange: {exchange.Name}, TradePair: {exTradePair.TradePair.FromCurrency.Code} - {exTradePair.TradePair.ToCurrency.Code}");
+                        //System.Console.WriteLine($"Exchange: {exchange.Name}, TradePair: {exTradePair.TradePair.FromCurrency.Code} - {exTradePair.TradePair.ToCurrency.Code}");
 
                     }
 
@@ -56,6 +57,7 @@ namespace RBBot.Core.Engine
 
             var priceObservers = new List<IMarketPriceObserver>();
             priceObservers.Add(MarketPriceRecorder.Instance);
+            priceObservers.Add(MarketPriceSpreadTracker.Instance);
 
 
             var ccExchangeIds = settings.Where(x => x.Name == "ReadFromCryptoCompare" && x.Value.ToLower() == "true").Select(x => x.ExchangeId).ToList();
@@ -63,11 +65,11 @@ namespace RBBot.Core.Engine
 
             List<ExchangeIntegration> integrations = new List<Exchanges.ExchangeIntegration>();
 
-            integrations.Add(new CryptoCompareIntegration(new[] { MarketPriceRecorder.Instance }, ccExchanges.ToArray()));
-            integrations.Add(new BitflyerIntegration(new[] { MarketPriceRecorder.Instance }, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
-            integrations.Add(new GDAXIntegration(new[] { MarketPriceRecorder.Instance }, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
-            integrations.Add(new OKCoinComIntegration(new[] { MarketPriceRecorder.Instance }, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
-            integrations.Add(new OKCoinCNIntegration(new[] { MarketPriceRecorder.Instance }, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
+            integrations.Add(new CryptoCompareIntegration(priceObservers.ToArray(), ccExchanges.ToArray()));
+            integrations.Add(new BitflyerIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
+            integrations.Add(new GDAXIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
+            integrations.Add(new OKCoinComIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
+            integrations.Add(new OKCoinCNIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
             //integrations.Add(new OKExIntegration(new[] { MarketPriceObserver.Instance }, new[] { exchangeModels.Single(x => x.Name == "OKEx")});
 
             foreach (var integration in integrations)

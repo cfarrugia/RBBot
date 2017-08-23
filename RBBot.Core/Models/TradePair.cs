@@ -5,6 +5,7 @@ namespace RBBot.Core.Models
 {
     public partial class TradePair
     {
+        #region Object overrides
         public override bool Equals(object obj)
         {
 
@@ -24,6 +25,8 @@ namespace RBBot.Core.Models
         {
             return this.FromCurrency.Code + "-" + this.ToCurrency.Code;
         }
+
+        #endregion
 
         public TradePair()
         {

@@ -226,6 +226,7 @@
     <Compile Include="Engine\MarketObservers\IMarketPriceObserver.cs" />
     <Compile Include="Engine\MarketObservers\MarketPriceRecorder.cs" />
     <Compile Include="Engine\MarketObservers\MarketPriceSpreadTracker.cs" />
+    <Compile Include="Engine\MarketObservers\TradePairSpread.cs" />
     <Compile Include="Engine\PriceChangeEvent.cs" />
     <Compile Include="Exchanges\Bitflyer\BitflyerIntegration.cs" />
     <Compile Include="Exchanges\CryptoCompare\CryptoCompareIntegration.cs" />

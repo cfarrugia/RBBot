@@ -5,6 +5,30 @@ namespace RBBot.Core.Models
 {
     public partial class ExchangeTradePair
     {
+
+        #region Object overrides
+        public override bool Equals(object obj)
+        {
+
+            if (!(obj is ExchangeTradePair)) return false;
+
+            var tp = (ExchangeTradePair)obj;
+
+            return tp.Id == this.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Id;
+        }
+
+        public override string ToString()
+        {
+            return this.Exchange.ToString() + " - " + this.TradePair.ToString() + $" ({this.Status.Code})" ;
+        }
+
+        #endregion
+
         public ExchangeTradePair()
         {
             MarketPrice = new HashSet<MarketPrice>();

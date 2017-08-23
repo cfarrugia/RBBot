@@ -5,6 +5,29 @@ namespace RBBot.Core.Models
 {
     public partial class Exchange
     {
+        #region Object overrides
+        public override bool Equals(object obj)
+        {
+
+            if (!(obj is Exchange)) return false;
+
+            var tp = (Exchange)obj;
+
+            return tp.Id == this.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Id;
+        }
+
+        public override string ToString()
+        {
+            return this.Name;
+        }
+
+        #endregion
+
         public Exchange()
         {
             ExchangeSetting = new HashSet<ExchangeSetting>();
