@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using Newtonsoft.Json;
 using RBBot.Core.Models;
+using RBBot.Core.Engine.MarketObservers;
 
 namespace RBBot.Core.Exchanges.GDAX
 {
@@ -17,9 +18,8 @@ namespace RBBot.Core.Exchanges.GDAX
 
         private ClientWebSocket websocket = null;
 
-        public GDAXIntegration(IEnumerable<IPriceObserver> priceObservers, Exchange exchange) : base(priceObservers, exchange)
+        public GDAXIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
         {
-            
         }
 
         public override async Task InitializeAsync()
@@ -34,7 +34,7 @@ namespace RBBot.Core.Exchanges.GDAX
             var uri = "wss://ws-feed.gdax.com";
 
             // And initialize the websocket, pasing ParseResult as the callback to parse data from GDAX
-            this.websocket = await Helpers.WebSocketManager.Initialize(uri, text, ParseResult);
+            this.websocket = await Helpers.WebSocketManager.Initialize(uri, new[] { text }, ParseResult);
 
         }
 
@@ -48,23 +48,32 @@ namespace RBBot.Core.Exchanges.GDAX
         // Callback when gdax send information.
         private async Task ParseResult(string result)
         {
-            // We just want matches. Discard everything else.
-            if (result.Contains("match"))
+            try
             {
-                var jsonObj = JsonConvert.DeserializeObject<GDAXTradeMatchJson>(result);
 
 
-
-                PriceChangeEvent priceChange = new PriceChangeEvent()
+                // We just want matches. Discard everything else.
+                if (result.Contains("match"))
                 {
-                    Price = jsonObj.price,
-                    UtcTime = DateTime.Parse(jsonObj.time).ToUniversalTime(),
-                    ExchangeTradePair = this.GetExchangeTradePair(jsonObj.product_id.Split('-')[0], jsonObj.product_id.Split('-')[1])
+                    var jsonObj = JsonConvert.DeserializeObject<GDAXTradeMatchJson>(result);
 
-                };
 
-                // Notify the observers!
-                await this.NotifyObserverOfPriceChange(priceChange);
+
+                    PriceChangeEvent priceChange = new PriceChangeEvent()
+                    {
+                        Price = jsonObj.price,
+                        UtcTime = DateTime.Parse(jsonObj.time).ToUniversalTime(),
+                        ExchangeTradePair = this.GetExchangeTradePair(this.tradingPairs.Values.First().Exchange.Name, jsonObj.product_id.Split('-')[0], jsonObj.product_id.Split('-')[1])
+
+                    };
+
+                    // Notify the observers!
+                    await this.NotifyObserverOfPriceChange(priceChange);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
 
         }

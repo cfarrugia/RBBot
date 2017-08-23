@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RBBot.Core")]
+[assembly: AssemblyTitle("RBBot.RBConsole")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("RBBot.Core")]
+[assembly: AssemblyProduct("RBBot.RBConsole")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("af548406-2976-4e3e-82a0-f5436a8ee8f8")]
+[assembly: Guid("2e314cb2-83f8-41bc-b17c-ca2a4bcdbd86")]
 
 // Version information for an assembly consists of the following four values:
 //

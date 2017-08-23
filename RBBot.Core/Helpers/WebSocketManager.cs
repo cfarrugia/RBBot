@@ -74,7 +74,7 @@ namespace RBBot.Core.Helpers
         /// <param name="subscribeMessage">The initial subscription message to send</param>
         /// <param name="receiver">The method called whenever a message is received</param>
         /// <returns></returns>
-        public static async Task<ClientWebSocket> Initialize(string address, string subsrcibeMessage, Func<string, Task> receiver)
+        public static async Task<ClientWebSocket> Initialize(string address, string[] subsrcibeMessage, Func<string, Task> receiver)
         {
             ClientWebSocket websocket = null;
             try
@@ -97,11 +97,15 @@ namespace RBBot.Core.Helpers
         }
 
 
-        private static async Task Send(ClientWebSocket webSocket, string message)
+        private static async Task Send(ClientWebSocket webSocket, string[] messages)
         {
-            // encode and send message;
-            byte[] buffer = encoder.GetBytes(message);
-            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            foreach (var message in messages)
+            {
+                // encode and send message;
+                byte[] buffer = encoder.GetBytes(message);
+                await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+            
         }
 
         private static async Task Receive(ClientWebSocket webSocket, Func<string, Task> processor)
@@ -109,15 +113,26 @@ namespace RBBot.Core.Helpers
             byte[] buffer = new byte[receiveChunkSize];
             while (webSocket.State == WebSocketState.Open)
             {
-                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                if (result.MessageType == WebSocketMessageType.Close)
+                StringBuilder completeMessage = new StringBuilder();
+                bool isEndOfMessage = false;
+
+                do
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-                }
-                else
-                {
-                    await processor(encoder.GetString(buffer, 0, result.Count));
-                }
+                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    isEndOfMessage = result.EndOfMessage;
+                    completeMessage.Append(encoder.GetString(buffer, 0, result.Count));
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        isEndOfMessage = true;
+                    }
+
+                } while (isEndOfMessage == false);
+                
+                // If a message was written, then process it.
+                if (completeMessage.Length > 0)
+                    await processor(completeMessage.ToString());
             }
         }
         

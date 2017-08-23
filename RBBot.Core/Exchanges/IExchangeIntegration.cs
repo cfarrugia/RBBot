@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RBBot.Core.Engine.MarketObservers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace RBBot.Core.Exchanges
         /// <summary>
         /// List of observers
         /// </summary>
-        IEnumerable<Engine.IPriceObserver> PriceObservers { get; set;  }
+        IEnumerable<IMarketPriceObserver> PriceObservers { get; set;  }
 
         /// <summary>
         /// Initialization method for the integration.

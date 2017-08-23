@@ -16,6 +16,8 @@ namespace RBBot.Core.Models
         public decimal FeePercent { get; set; }
         public int StatusId { get; set; }
 
+
+
         public virtual ICollection<MarketPrice> MarketPrice { get; set; }
         public virtual Exchange Exchange { get; set; }
         public virtual ExchangeTradePair IdNavigation { get; set; }
