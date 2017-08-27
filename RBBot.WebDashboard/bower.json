@@ -1,0 +1,23 @@
+{
+  "name": "RBBot.WebDashboard",
+  "homepage": "https://github.com/cfarrugia/RBBot",
+  "description": "Web Console for RBBot",
+  "main": "",
+  "authors": [
+    "Clyde Farrugia"
+  ],
+  "dependencies": {
+    "firebase": "^4.3.0",
+    "push.js": "^1.0.4",
+    "push-fcm-plugin": "^1.0.4"
+
+  },
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

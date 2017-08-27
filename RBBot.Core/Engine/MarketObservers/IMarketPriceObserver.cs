@@ -8,5 +8,6 @@ namespace RBBot.Core.Engine.MarketObservers
     public interface IMarketPriceObserver
     {
         Task OnMarketPriceChangeAsync(PriceChangeEvent change);
+
     }
 }

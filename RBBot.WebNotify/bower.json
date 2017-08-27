@@ -1,0 +1,22 @@
+{
+  "name": "RBBot.WebNotify",
+  "homepage": "rbbot/index.html",
+  "description": "",
+  "main": [],
+  "authors": [
+    "Clyde Farrugia"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "firebase": "^4.3.0",
+    "push.js": "^1.0.4",
+    "push-fcm-plugin": "^0.0.2"
+  }
+}

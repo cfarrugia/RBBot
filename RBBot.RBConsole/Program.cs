@@ -27,7 +27,7 @@ namespace RBBot.RBConsole
 
             try
             { 
-                RBBot.Core.Engine.DefaultEngine.InitializeEngine();
+                RBBot.Core.Engine.DataProcessingEngine.InitializeEngine();
             }
             catch (Exception ex)
             {

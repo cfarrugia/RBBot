@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RBBot.RBConsole", "RBBot.RB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RBBot.Core", "RBBot.Core\RBBot.Core.csproj", "{AF548406-2976-4E3E-82A0-F5436A8EE8F8}"
 EndProject
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "RBBot.WebNotify", "RBBot.WebNotify\RBBot.WebNotify.njsproj", "{774F37FC-98EE-472D-A97F-C1870CDA2BFE}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "RBBot.WebDashboard", "RBBot.WebDashboard\RBBot.WebDashboard.xproj", "{5DACE864-77DC-408A-B83E-BF7847C3BDFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{AF548406-2976-4E3E-82A0-F5436A8EE8F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF548406-2976-4E3E-82A0-F5436A8EE8F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF548406-2976-4E3E-82A0-F5436A8EE8F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{774F37FC-98EE-472D-A97F-C1870CDA2BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{774F37FC-98EE-472D-A97F-C1870CDA2BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{774F37FC-98EE-472D-A97F-C1870CDA2BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{774F37FC-98EE-472D-A97F-C1870CDA2BFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DACE864-77DC-408A-B83E-BF7847C3BDFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DACE864-77DC-408A-B83E-BF7847C3BDFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DACE864-77DC-408A-B83E-BF7847C3BDFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DACE864-77DC-408A-B83E-BF7847C3BDFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

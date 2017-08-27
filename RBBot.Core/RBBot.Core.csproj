@@ -222,12 +222,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\RBBotContext.cs" />
-    <Compile Include="Engine\DefaultEngine.cs" />
+    <Compile Include="Engine\Alerting\ConsoleNotifier.cs" />
+    <Compile Include="Engine\Alerting\INotifier.cs" />
+    <Compile Include="Engine\Alerting\LoggingNotifier.cs" />
+    <Compile Include="Engine\Alerting\NotificationType.cs" />
+    <Compile Include="Engine\Alerting\WebNotifier.cs" />
+    <Compile Include="Engine\AutoTradingEngine.cs" />
+    <Compile Include="Engine\DataProcessingEngine.cs" />
     <Compile Include="Engine\MarketObservers\IMarketPriceObserver.cs" />
     <Compile Include="Engine\MarketObservers\MarketPriceRecorder.cs" />
     <Compile Include="Engine\MarketObservers\MarketPriceSpreadTracker.cs" />
     <Compile Include="Engine\MarketObservers\TradePairSpread.cs" />
     <Compile Include="Engine\PriceChangeEvent.cs" />
+    <Compile Include="Engine\OpportunityScoreEngine.cs" />
+    <Compile Include="Engine\Trading\Opportunity.cs" />
+    <Compile Include="Engine\Trading\OpportunityAction.cs" />
+    <Compile Include="Engine\Trading\TradeActionType.cs" />
     <Compile Include="Exchanges\Bitflyer\BitflyerIntegration.cs" />
     <Compile Include="Exchanges\CryptoCompare\CryptoCompareIntegration.cs" />
     <Compile Include="Exchanges\ExchangeIntegration.cs" />
@@ -276,9 +286,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Engine\Actuators\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

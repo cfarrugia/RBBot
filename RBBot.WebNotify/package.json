@@ -1,0 +1,22 @@
+{
+  "name": "rbbot.web-notify",
+  "version": "0.0.0",
+  "description": "RBBot.WebNotify",
+  "main": "server.js",
+  "author": {
+    "name": "c.farrugia"
+  },
+  "dependencies": {
+    "fcm-node": "^1.2.0",
+    "push.js": "^1.0.4",
+    "firebase/app": "*"
+  },
+  "devDependencies": {
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-bower": "0.0.13",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-uglify": "^3.0.0"
+  }
+}

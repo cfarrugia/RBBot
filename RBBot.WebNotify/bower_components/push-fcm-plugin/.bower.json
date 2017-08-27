@@ -1,0 +1,30 @@
+{
+  "name": "push-fcm-plugin",
+  "description": "Firebase Cloud Messaging plugin for Push.js",
+  "main": "bin/push.fcm.js",
+  "authors": [
+    "Tyler Nickerson"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/Nickersoft/pushjs-fcm-plugin",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "*.json",
+    "*.lock"
+  ],
+  "version": "0.0.2",
+  "_release": "0.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.2",
+    "commit": "7220bd1d65d9f994795738e003077aaefd60ece1"
+  },
+  "_source": "https://github.com/Nickersoft/push-fcm-plugin.git",
+  "_target": "^0.0.2",
+  "_originalSource": "push-fcm-plugin",
+  "_direct": true
+}
