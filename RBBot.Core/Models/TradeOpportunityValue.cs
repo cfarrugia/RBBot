@@ -6,26 +6,23 @@ namespace RBBot.Core.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("Currency")]
-    public partial class Currency
+    [Table("TradeOpportunityValue")]
+    public partial class TradeOpportunityValue
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Currency()
+        public TradeOpportunityValue()
         {
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(5)]
-        public string Code { get; set; }
+        public int TradeOpportunityId { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
+        public DateTime Timestamp { get; set; }
 
-        public bool IsCrypto { get; set; }
+        public decimal PotentialMargin { get; set; }
 
+        public virtual TradeOpportunity TradeOpportunity { get; set; }
     }
 }

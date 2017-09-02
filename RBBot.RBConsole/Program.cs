@@ -1,5 +1,8 @@
 ﻿using RBBot.Core.Database;
 using RBBot.Core.Engine;
+using RBBot.Core.Engine.Trading;
+using RBBot.Core.Engine.Trading.Arb;
+using RBBot.Core.Engine.Trading.Recorder;
 using RBBot.Core.Exchanges.CryptoCompare;
 using RBBot.Core.Models;
 using System;
@@ -23,11 +26,28 @@ namespace RBBot.RBConsole
 
         public static void Main(string[] args)
         {
-            RBBot.Core.Database.RBBotContext.ConnectionString = ConfigurationManager.ConnectionStrings["RBBot"].ConnectionString;
+            //RBBot.Core.Database.RBBotContext.ConnectionString = ConfigurationManager.ConnectionStrings["RBBot"].ConnectionString;
 
             try
-            { 
-                RBBot.Core.Engine.DataProcessingEngine.InitializeEngine();
+            {
+                Task.Run(async () =>
+                {
+                    // We define the list of observers here.
+                    var priceObservers = new List<IMarketPriceObserver>();
+                    priceObservers.Add(MarketPriceRecorder.Instance);
+                    priceObservers.Add(ArbPriceManager.Instance);
+
+                    // Initialize the data processing engine.
+                    await RBBot.Core.Engine.DataProcessingEngine.InitializeEngine(priceObservers.ToArray());
+
+                    // Initialize the opportunity scoring engine.
+                    await RBBot.Core.Engine.OpportunityScoreEngine.InitializeEngine();
+
+                    // Initialize the trading engine.
+
+                }).GetAwaiter().GetResult();
+
+                
             }
             catch (Exception ex)
             {

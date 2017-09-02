@@ -6,26 +6,28 @@ namespace RBBot.Core.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("Currency")]
-    public partial class Currency
+    [Table("ExchangeState")]
+    public partial class ExchangeState
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Currency()
+        public ExchangeState()
         {
+            Exchanges = new HashSet<Exchange>();
         }
 
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
         [Required]
-        [StringLength(5)]
-        public string Code { get; set; }
-
-        [Required]
         [StringLength(50)]
         public string Name { get; set; }
 
-        public bool IsCrypto { get; set; }
+        [Required]
+        [StringLength(20)]
+        public string Code { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Exchange> Exchanges { get; set; }
 
     }
 }

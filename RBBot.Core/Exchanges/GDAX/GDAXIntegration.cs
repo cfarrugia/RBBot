@@ -7,11 +7,16 @@ using System.Net.WebSockets;
 using System.Threading;
 using Newtonsoft.Json;
 using RBBot.Core.Models;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
+using Gdax;
+using Gdax.Accounts;
+using Gdax.Authentication;
+using Gdax.CommonModels;
+
 
 namespace RBBot.Core.Exchanges.GDAX
 {
-    public class GDAXIntegration : ExchangeIntegration
+    public class GDAXIntegration : ExchangeIntegration, IExchangeTrader
     {
         
         public override string Name { get { return "GDAX"; } }
@@ -22,7 +27,7 @@ namespace RBBot.Core.Exchanges.GDAX
         {
         }
 
-        public override async Task InitializeAsync()
+        public override async Task InitializeExchangePriceProcessingAsync()
         {
             // Get all the products from the trading pairs.
             string products = string.Join(",", this.tradingPairs.ToList().Select(x => "\"" + x.Value.TradePair.FromCurrency.Code + "-" + x.Value.TradePair.ToCurrency.Code + "\""));
@@ -38,7 +43,7 @@ namespace RBBot.Core.Exchanges.GDAX
 
         }
 
-        public override async Task ShutDownAsync()
+        public override async Task ShutdownExchangePriceProcessingDownAsync()
         {
             await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }
@@ -78,5 +83,32 @@ namespace RBBot.Core.Exchanges.GDAX
 
         }
 
+        public Task<ExchangeBalance[]> GetBalancesAsync()
+        {
+            throw new NotImplementedException();
+            //GdaxClient c = new GdaxClient();
+            //GdaxAuthenticator au = new GdaxAuthenticator()
+            //throw new NotImplementedException();
+        }
+
+        public Task<ExchangeBalance> GetBalanceAsync(Currency currency)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DepositAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task PlaceOrder()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,11 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace RBBot.Core.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.Data.Entity.Spatial;
+
+    [Table("ExchangeTradePair")]
     public partial class ExchangeTradePair
     {
-
         #region Object overrides
         public override bool Equals(object obj)
         {
@@ -24,29 +27,34 @@ namespace RBBot.Core.Models
 
         public override string ToString()
         {
-            return this.Exchange.ToString() + " - " + this.TradePair.ToString() + $" ({this.Status.Code})" ;
+            return this.Exchange.ToString() + " - " + this.TradePair.ToString() + $" ({this.ExchangeTradePairState.Code})";
         }
 
         #endregion
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public ExchangeTradePair()
         {
-            MarketPrice = new HashSet<MarketPrice>();
+            MarketPrices = new HashSet<MarketPrice>();
         }
 
         public int Id { get; set; }
+
         public int TradePairId { get; set; }
+
         public int ExchangeId { get; set; }
+
         public decimal FeePercent { get; set; }
-        public int StatusId { get; set; }
 
+        public int StateId { get; set; }
 
-
-        public virtual ICollection<MarketPrice> MarketPrice { get; set; }
         public virtual Exchange Exchange { get; set; }
-        public virtual ExchangeTradePair IdNavigation { get; set; }
-        public virtual ExchangeTradePair InverseIdNavigation { get; set; }
-        public virtual ExchangeTradePairStatus Status { get; set; }
+
+        public virtual ExchangeTradePairState ExchangeTradePairState { get; set; }
+
         public virtual TradePair TradePair { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<MarketPrice> MarketPrices { get; set; }
     }
 }

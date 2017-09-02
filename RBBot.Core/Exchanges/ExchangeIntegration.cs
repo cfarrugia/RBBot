@@ -1,5 +1,5 @@
 ﻿using RBBot.Core.Engine;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RBBot.Core.Exchanges
 {
-    public abstract class ExchangeIntegration : IExchangeIntegration
+    public abstract class ExchangeIntegration : IExchangePriceReader
     {
         /// <summary>
         /// The constructor of the integration
@@ -27,9 +27,9 @@ namespace RBBot.Core.Exchanges
 
             foreach (var exchange in exchanges)
             {
-                foreach (var pair in exchange.ExchangeTradePair.Where(x => x.Status.Code != "OFF").ToList())
+                foreach (var pair in exchange.ExchangeTradePairs.Where(x => x.ExchangeTradePairState.Code != "OFF").ToList())
                 {
-                    if (pair.Status.Code == "OFF") continue; // Ignore offline pairs.
+                    if (pair.ExchangeTradePairState.Code == "OFF") continue; // Ignore offline pairs.
                     tradingPairs.Add(GetPairKey(exchange.Name, pair.TradePair.FromCurrency.Code, pair.TradePair.ToCurrency.Code), pair);
                 }
             }
@@ -42,9 +42,9 @@ namespace RBBot.Core.Exchanges
 
         public IEnumerable<IMarketPriceObserver> PriceObservers { get; set; }
 
-        public abstract Task InitializeAsync();
+        public abstract Task InitializeExchangePriceProcessingAsync();
 
-        public abstract Task ShutDownAsync();
+        public abstract Task ShutdownExchangePriceProcessingDownAsync();
 
 
         protected async Task NotifyObserverOfPriceChange(PriceChangeEvent priceEvent)

@@ -1,4 +1,4 @@
-﻿using RBBot.Core.Engine.MarketObservers;
+﻿using RBBot.Core.Engine.Trading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace RBBot.Core.Exchanges
 {
 
-    public interface IExchangeIntegration
+    public interface IExchangePriceReader
     {
         /// <summary>
         /// Exchange Name
@@ -22,12 +22,12 @@ namespace RBBot.Core.Exchanges
         /// <summary>
         /// Initialization method for the integration.
         /// </summary>
-        Task InitializeAsync();
+        Task InitializeExchangePriceProcessingAsync();
 
         /// <summary>
         /// Called to shutdown the exchange integration
         /// </summary>
-        Task ShutDownAsync();
+        Task ShutdownExchangePriceProcessingDownAsync();
 
     }
 }

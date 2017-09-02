@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using RBBot.Core.Database;
-using RBBot.Core.Engine.MarketObservers;
+﻿using RBBot.Core.Database;
 using RBBot.Core.Exchanges;
 using RBBot.Core.Exchanges.Bitflyer;
 using RBBot.Core.Exchanges.CryptoCompare;
@@ -11,14 +8,15 @@ using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Data.Entity;
 using System.Threading.Tasks;
+using RBBot.Core.Engine.Trading;
 
 namespace RBBot.Core.Engine
 {
     public static class DataProcessingEngine
     {
-        public static async void InitializeEngine()
+        public static async Task InitializeEngine(IMarketPriceObserver[] priceObservers)
         {
 
 
@@ -28,21 +26,23 @@ namespace RBBot.Core.Engine
             // Get all exchangeModels. We need them to construct the integrations.
             using (var ctx = new RBBotContext())
             {
-                exchangeModels = ctx.Exchange
-                    .Include(x => x.Status)
-                    .Include(x => x.ExchangeSetting)
-                    .Include(x => x.ExchangeTradePair).ThenInclude(x => x.Status)
-                    .Include(x => x.ExchangeTradePair).ThenInclude(y => y.TradePair).ThenInclude(x => x.FromCurrency)
-                    .Include(x => x.ExchangeTradePair).ThenInclude(y => y.TradePair).ThenInclude(x => x.ToCurrency)
-                    .Where(x => x.Status.Code != "OFF") // Don't get offline exchanges!
+                exchangeModels = ctx.Exchanges
+                    .Include(x => x.ExchangeState)
+                    .Include(x => x.ExchangeSettings)
+                    .Include(x => x.ExchangeTradePairs.Select(y => y.ExchangeTradePairState))
+                    .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.FromCurrency))
+                    .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.ToCurrency))
+                    .Where(x => x.ExchangeState.Code != "OFF") // Don't get offline exchanges!
                     .ToList();
 
 
-                // Get all exchanges.
+
+
+                    // Get all exchanges.
                 foreach (var exchange in exchangeModels)
                 {
 
-                    foreach (var exTradePair in exchange.ExchangeTradePair)
+                    foreach (var exTradePair in exchange.ExchangeTradePairs)
                     {
 
                         //System.Console.WriteLine($"Exchange: {exchange.Name}, TradePair: {exTradePair.TradePair.FromCurrency.Code} - {exTradePair.TradePair.ToCurrency.Code}");
@@ -51,13 +51,9 @@ namespace RBBot.Core.Engine
 
                 }
 
-                settings = ctx.ExchangeSetting.ToList();
+                settings = ctx.ExchangeSettings.ToList();
             }
 
-
-            var priceObservers = new List<IMarketPriceObserver>();
-            priceObservers.Add(MarketPriceRecorder.Instance);
-            priceObservers.Add(MarketPriceSpreadTracker.Instance);
 
 
             var ccExchangeIds = settings.Where(x => x.Name == "ReadFromCryptoCompare" && x.Value.ToLower() == "true").Select(x => x.ExchangeId).ToList();
@@ -65,29 +61,17 @@ namespace RBBot.Core.Engine
 
             List<ExchangeIntegration> integrations = new List<Exchanges.ExchangeIntegration>();
 
-            integrations.Add(new CryptoCompareIntegration(priceObservers.ToArray(), ccExchanges.ToArray()));
-            integrations.Add(new BitflyerIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
-            integrations.Add(new GDAXIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
-            integrations.Add(new OKCoinComIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
-            integrations.Add(new OKCoinCNIntegration(priceObservers.ToArray(), new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
+            integrations.Add(new CryptoCompareIntegration(priceObservers, ccExchanges.ToArray()));
+            integrations.Add(new BitflyerIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
+            integrations.Add(new GDAXIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
+            integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
+            integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
             //integrations.Add(new OKExIntegration(new[] { MarketPriceObserver.Instance }, new[] { exchangeModels.Single(x => x.Name == "OKEx")});
 
             foreach (var integration in integrations)
             {
-                await integration.InitializeAsync();
+                await integration.InitializeExchangePriceProcessingAsync();
             }
-            
-
-
-
-            //IList <ExchangeIntegration> integrations = new[] { new GDAXIntegration(new[] { MarketPriceObserver.Instance }, exchangeModels.Single(x => x.Name == "GDAX" ) };
-
-            //foreach (var exIntegration in integrations)
-            //{
-            //    exIntegration.InitializeAsync();
-            //}
-
-
 
         }
 

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using RBBot.Core.Engine;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ namespace RBBot.Core.Exchanges.OKCoin
         private Dictionary<string, ExchangeTradePair> subsribedProducts { get; set; }
 
 
-        public override async Task InitializeAsync()
+        public override async Task InitializeExchangePriceProcessingAsync()
         {
             // Get all the products from the trading pairs.
             subsribedProducts = this.tradingPairs.ToDictionary(x => "ok_sub_spot" + x.Value.TradePair.ToCurrency.Code.ToLower() + "_" + x.Value.TradePair.FromCurrency.Code.ToLower() + "_ticker", y => y.Value);
@@ -49,7 +49,7 @@ namespace RBBot.Core.Exchanges.OKCoin
             this.websocket = await Helpers.WebSocketManager.Initialize(wssUri, subscriptions , ParseResult);
         }
 
-        public override async Task ShutDownAsync()
+        public override async Task ShutdownExchangePriceProcessingDownAsync()
         {
             await this.websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }

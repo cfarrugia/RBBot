@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using RBBot.Core.Engine;
 using RBBot.Core.Models;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
 
 namespace RBBot.Core.Exchanges.OKCoin
 {

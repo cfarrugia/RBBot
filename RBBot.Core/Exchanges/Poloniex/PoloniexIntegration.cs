@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using RBBot.Core.Engine;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace RBBot.Core.Exchanges.Poloniex
         {
         }
 
-        public override async Task InitializeAsync()
+        public override async Task InitializeExchangePriceProcessingAsync()
         {
             // Get all the products from the trading pairs.
             // For some reason the from and to currencies are the other way round. Mahh. 
@@ -43,7 +43,7 @@ namespace RBBot.Core.Exchanges.Poloniex
 
         }
 
-        public override async Task ShutDownAsync()
+        public override async Task ShutdownExchangePriceProcessingDownAsync()
         {
             await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }

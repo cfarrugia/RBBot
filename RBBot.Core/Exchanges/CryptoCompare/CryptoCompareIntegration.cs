@@ -1,5 +1,5 @@
 ﻿using RBBot.Core.Engine;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace RBBot.Core.Exchanges.CryptoCompare
         }
 
 
-        public override async Task InitializeAsync()
+        public override async Task InitializeExchangePriceProcessingAsync()
         {
 
             var node = EdgeJs.Edge.Func(@"
@@ -101,7 +101,7 @@ namespace RBBot.Core.Exchanges.CryptoCompare
 
        
 
-        public override Task ShutDownAsync()
+        public override Task ShutdownExchangePriceProcessingDownAsync()
         {
             // Not sure how to switch off node gracefully
             return null;

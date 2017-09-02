@@ -1,8 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace RBBot.Core.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.Data.Entity.Spatial;
+
+    [Table("Exchange")]
     public partial class Exchange
     {
         #region Object overrides
@@ -28,18 +32,36 @@ namespace RBBot.Core.Models
 
         #endregion
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Exchange()
         {
-            ExchangeSetting = new HashSet<ExchangeSetting>();
-            ExchangeTradePair = new HashSet<ExchangeTradePair>();
+            ExchangeSettings = new HashSet<ExchangeSetting>();
+            ExchangeTradePairs = new HashSet<ExchangeTradePair>();
+            TradeAccounts = new HashSet<TradeAccount>();
+            TradeOpportunityTransactions = new HashSet<TradeOpportunityTransaction>();
         }
 
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public int StatusId { get; set; }
 
-        public virtual ICollection<ExchangeSetting> ExchangeSetting { get; set; }
-        public virtual ICollection<ExchangeTradePair> ExchangeTradePair { get; set; }
-        public virtual ExchangeStatus Status { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string Name { get; set; }
+
+        public int StateId { get; set; }
+
+        public virtual ExchangeState ExchangeState { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ExchangeSetting> ExchangeSettings { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ExchangeTradePair> ExchangeTradePairs { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TradeAccount> TradeAccounts { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
     }
 }

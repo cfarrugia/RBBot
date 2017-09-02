@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using RBBot.Core.Models;
 
-namespace RBBot.Core.Engine.MarketObservers
+namespace RBBot.Core.Engine.Trading.Recorder
 {
 
 
@@ -58,7 +57,7 @@ namespace RBBot.Core.Engine.MarketObservers
             // Save to database.
             using (var ctx = new RBBotContext())
             {
-                ctx.MarketPrice.Add(new Models.MarketPrice()
+                ctx.MarketPrices.Add(new Models.MarketPrice()
                 {
                     ExchangeTradePairId = change.ExchangeTradePair.Id,
                     Price = change.Price,

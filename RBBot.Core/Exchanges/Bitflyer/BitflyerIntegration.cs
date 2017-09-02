@@ -1,6 +1,6 @@
 ﻿using PubNubMessaging.Core;
 using RBBot.Core.Engine;
-using RBBot.Core.Engine.MarketObservers;
+using RBBot.Core.Engine.Trading;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace RBBot.Core.Exchanges.Bitflyer
         private Dictionary<string, ExchangeTradePair> subsribedProducts { get; set; }
         private Pubnub pubnub { get; set; }
 
-        public override async Task InitializeAsync()
+        public override async Task InitializeExchangePriceProcessingAsync()
         {
             // Bitflyer uses pubnub. This is a cloud based service which works with subscriptions. 
 #warning This key needs to be saved
@@ -73,7 +73,7 @@ namespace RBBot.Core.Exchanges.Bitflyer
 
 
 
-        public override async Task ShutDownAsync()
+        public override async Task ShutdownExchangePriceProcessingDownAsync()
         {
             await Task.Run(() =>
             {
