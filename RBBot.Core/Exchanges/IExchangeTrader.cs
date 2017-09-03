@@ -11,9 +11,11 @@ namespace RBBot.Core.Exchanges
     {
         Task<ExchangeBalance[]> GetBalancesAsync();
 
-        Task<ExchangeBalance> GetBalanceAsync(Currency currency);
+        Exchange Exchange { get; }
 
-        Task DepositAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress);
+        //Task<ExchangeBalance> GetBalanceAsync(Currency currency);
+
+        Task<string> GetDepositAddressAsync(Currency currency);
 
         Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress);
 

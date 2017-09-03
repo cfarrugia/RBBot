@@ -14,10 +14,12 @@ namespace RBBot.Core.Models
         {
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         public int ExchangeId { get; set; }
+
+        public string ExchangeIdentifier { get; set; }
 
         public int CurrencyId { get; set; }
 

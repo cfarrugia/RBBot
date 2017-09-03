@@ -6,12 +6,12 @@ namespace RBBot.Core.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("ExchangeSetting")]
-    public partial class ExchangeSetting
+    [Table("Setting")]
+    public partial class Setting
     {
         public int Id { get; set; }
 
-        public int ExchangeId { get; set; }
+        public int? ExchangeId { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -21,6 +21,13 @@ namespace RBBot.Core.Models
         [StringLength(1024)]
         public string Value { get; set; }
 
+        [Required]
+        public bool IsEncrypted { get; set; }
+
+        [Required]
+        public bool ShouldBeEncrypted { get; set; }
+
         public virtual Exchange Exchange { get; set; }
+
     }
 }

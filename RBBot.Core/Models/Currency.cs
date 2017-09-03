@@ -27,5 +27,7 @@ namespace RBBot.Core.Models
 
         public bool IsCrypto { get; set; }
 
+        public int AverageTransferTimeMinutes { get; set; }
+
     }
 }

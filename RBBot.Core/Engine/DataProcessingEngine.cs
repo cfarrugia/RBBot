@@ -11,6 +11,8 @@ using System.Linq;
 using System.Data.Entity;
 using System.Threading.Tasks;
 using RBBot.Core.Engine.Trading;
+using RBBot.Core.Helpers;
+using RBBot.Core.Exchanges.Poloniex;
 
 namespace RBBot.Core.Engine
 {
@@ -21,57 +23,95 @@ namespace RBBot.Core.Engine
 
 
             IList<Exchange> exchangeModels = null;
-            IList<ExchangeSetting> settings = null;
+            IList<Setting> settings = null;
+            List<ExchangeIntegration> integrations = null;
 
             // Get all exchangeModels. We need them to construct the integrations.
             using (var ctx = new RBBotContext())
             {
+
+                // Load the exchanges and all the stuff associated with them
                 exchangeModels = ctx.Exchanges
                     .Include(x => x.ExchangeState)
-                    .Include(x => x.ExchangeSettings)
+                    .Include(x => x.Settings)
                     .Include(x => x.ExchangeTradePairs.Select(y => y.ExchangeTradePairState))
                     .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.FromCurrency))
                     .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.ToCurrency))
                     .Where(x => x.ExchangeState.Code != "OFF") // Don't get offline exchanges!
                     .ToList();
 
+                // Get / cache the settings. 
+                settings = ctx.Settings.ToList();
+
+                // Now since I'm lazy, i first put setting unencrypted in db, and then encrypt them here. 
+                if (settings.Where(x => x.IsEncrypted == false && x.ShouldBeEncrypted == true).Any(x => { x.EncryptSetting(); return true; }))
+                    ctx.SaveChanges();
+
+                // Now initialize the setting helper with all settings!
+                SettingHelper.InitializeSettings(settings.ToArray());
 
 
+                // Initialize all exchanges and their integrations.
+                var ccExchangeIds = settings.Where(x => x.Name == "ReadFromCryptoCompare" && x.Value.ToLower() == "true").Select(x => x.ExchangeId).ToList();
+                var ccExchanges = exchangeModels.Where(x => ccExchangeIds.Contains(x.Id)).ToList();
 
-                    // Get all exchanges.
-                foreach (var exchange in exchangeModels)
-                {
+                integrations = new List<Exchanges.ExchangeIntegration>();
+                integrations.Add(new CryptoCompareIntegration(priceObservers, ccExchanges.ToArray()));
+                integrations.Add(new BitflyerIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
+                integrations.Add(new PoloniexIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Poloniex") }));
+                integrations.Add(new GDAXIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
+                integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
+                integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
 
-                    foreach (var exTradePair in exchange.ExchangeTradePairs)
-                    {
 
-                        //System.Console.WriteLine($"Exchange: {exchange.Name}, TradePair: {exTradePair.TradePair.FromCurrency.Code} - {exTradePair.TradePair.ToCurrency.Code}");
-
-                    }
-
-                }
-
-                settings = ctx.ExchangeSettings.ToList();
+                // Synchronize all the trading accounts.
+                var tradingExchanges = integrations.Where(x => x is IExchangeTrader).Select(x => x as IExchangeTrader).ToList();
+                foreach (var te in tradingExchanges) await SynchronizeAccounts(te, ctx);
+                await ctx.SaveChangesAsync();
             }
 
 
+            foreach (var e in integrations) await e.InitializeExchangePriceProcessingAsync();
+        }
 
-            var ccExchangeIds = settings.Where(x => x.Name == "ReadFromCryptoCompare" && x.Value.ToLower() == "true").Select(x => x.ExchangeId).ToList();
-            var ccExchanges = exchangeModels.Where(x => ccExchangeIds.Contains(x.Id)).ToList();
+        private static async Task SynchronizeAccounts(IExchangeTrader exchangeIntegration, RBBotContext dbContext)
+        {
+            Exchange exchangeModel = exchangeIntegration.Exchange;
 
-            List<ExchangeIntegration> integrations = new List<Exchanges.ExchangeIntegration>();
+            // Get the balances from the exchange integration
+            var exchangebalances = (await exchangeIntegration.GetBalancesAsync()).ToDictionary(x => x.CurrencyCode, y => y);
 
-            integrations.Add(new CryptoCompareIntegration(priceObservers, ccExchanges.ToArray()));
-            integrations.Add(new BitflyerIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
-            integrations.Add(new GDAXIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
-            integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
-            integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
-            //integrations.Add(new OKExIntegration(new[] { MarketPriceObserver.Instance }, new[] { exchangeModels.Single(x => x.Name == "OKEx")});
+            // Get the exchange's trading accounts.
+            var existingAccounts = exchangeModel.TradeAccounts.ToDictionary(x => x.Currency.Code, y => y);
 
-            foreach (var integration in integrations)
+            // If the account exists already, then update. 
+            existingAccounts.Where(x => exchangebalances.Keys.Contains(x.Key)).ToList().ForEach(x =>
             {
-                await integration.InitializeExchangePriceProcessingAsync();
-            }
+                var exCurr = exchangebalances[x.Key];
+                var acc = existingAccounts[x.Key];
+                acc.Balance = exCurr.Balance;
+                acc.LastUpdate = exCurr.Timestamp;
+                acc.ExchangeIdentifier = exCurr.ExchangeIdentifier;
+                acc.Address = exCurr.Address;
+            });
+
+            // If the account doesn't exist, then create it. 
+            exchangebalances.Keys.Where(x => !existingAccounts.Keys.Contains(x)).ToList().ForEach(x =>
+            {
+                var b = exchangebalances[x];
+                TradeAccount acc = new TradeAccount()
+                {
+                    Address = b.Address,
+                    Balance = b.Balance,
+                    Exchange = exchangeModel,
+                    ExchangeIdentifier = b.ExchangeIdentifier,
+                    LastUpdate = b.Timestamp,
+                    Currency = dbContext.Currencies.Where(c => c.Code == b.CurrencyCode).Single()
+                };
+
+                dbContext.TradeAccounts.Add(acc);
+            });
+
 
         }
 

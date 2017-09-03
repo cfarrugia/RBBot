@@ -17,7 +17,7 @@ namespace RBBot.Core.Database
 
         public virtual DbSet<Currency> Currencies { get; set; }
         public virtual DbSet<Exchange> Exchanges { get; set; }
-        public virtual DbSet<ExchangeSetting> ExchangeSettings { get; set; }
+        public virtual DbSet<Setting> Settings { get; set; }
         public virtual DbSet<ExchangeState> ExchangeStates { get; set; }
         public virtual DbSet<ExchangeTradePair> ExchangeTradePairs { get; set; }
         public virtual DbSet<ExchangeTradePairState> ExchangeTradePairStates { get; set; }
@@ -36,8 +36,8 @@ namespace RBBot.Core.Database
                 .IsUnicode(false);
 
             modelBuilder.Entity<Exchange>()
-                .HasMany(e => e.ExchangeSettings)
-                .WithRequired(e => e.Exchange)
+                .HasMany(e => e.Settings)
+                .WithOptional(e => e.Exchange)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Exchange>()
@@ -56,7 +56,7 @@ namespace RBBot.Core.Database
                 .HasForeignKey(e => e.ExecuteOnExchangeId)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<ExchangeSetting>()
+            modelBuilder.Entity<Setting>()
                 .Property(e => e.Name)
                 .IsUnicode(false);
 

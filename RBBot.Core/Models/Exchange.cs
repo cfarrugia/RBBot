@@ -35,7 +35,7 @@ namespace RBBot.Core.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Exchange()
         {
-            ExchangeSettings = new HashSet<ExchangeSetting>();
+            Settings = new HashSet<Setting>();
             ExchangeTradePairs = new HashSet<ExchangeTradePair>();
             TradeAccounts = new HashSet<TradeAccount>();
             TradeOpportunityTransactions = new HashSet<TradeOpportunityTransaction>();
@@ -53,7 +53,7 @@ namespace RBBot.Core.Models
         public virtual ExchangeState ExchangeState { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ExchangeSetting> ExchangeSettings { get; set; }
+        public virtual ICollection<Setting> Settings { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ExchangeTradePair> ExchangeTradePairs { get; set; }

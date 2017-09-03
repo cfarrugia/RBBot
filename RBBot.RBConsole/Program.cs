@@ -18,16 +18,11 @@ namespace RBBot.RBConsole
     public class Program
     {
 
-
-
-        
-
         
 
         public static void Main(string[] args)
         {
-            //RBBot.Core.Database.RBBotContext.ConnectionString = ConfigurationManager.ConnectionStrings["RBBot"].ConnectionString;
-
+           
             try
             {
                 Task.Run(async () =>

@@ -10,16 +10,22 @@ namespace RBBot.Core.Exchanges
     public class ExchangeBalance
     {
         public Exchange Exchange { get; private set; }
-        public decimal Balance { get; private set;  }
-        public decimal Timestamp { get; private set; }
-        public Currency Currency { get; private set; }
+        public decimal Balance { get; private set; }
+        public DateTime Timestamp { get; private set; }
+        public string CurrencyCode { get; private set; }
 
-        public ExchangeBalance(Exchange exchange, decimal balance, decimal utcTimestamp, Currency currency)
+        public string ExchangeIdentifier { get; private set; }
+
+        public string Address { get; private set; }
+
+        public ExchangeBalance(Exchange exchange, decimal balance, DateTime utcTimestamp, string currencyCode, string Address = null, string ExchangeIdentifier = null)
         {
             this.Exchange = exchange;
             this.Balance = balance;
             this.Timestamp = utcTimestamp;
-            this.Currency = currency;
+            this.CurrencyCode = currencyCode;
+            this.Address = Address;
+            this.ExchangeIdentifier = ExchangeIdentifier;
         }
     }
 }

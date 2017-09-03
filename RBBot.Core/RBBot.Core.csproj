@@ -220,6 +220,7 @@
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -239,9 +240,21 @@
     <Compile Include="Engine\Trading\Arb\ArbOpportunity.cs" />
     <Compile Include="Exchanges\ExchangeBalance.cs" />
     <Compile Include="Exchanges\IExchangeTrader.cs" />
+    <Compile Include="Exchanges\Poloniex\Common\ApiWebClient.cs" />
+    <Compile Include="Exchanges\Poloniex\Common\OrderType.cs" />
+    <Compile Include="Exchanges\Poloniex\Common\Helper.cs" />
+    <Compile Include="Exchanges\Poloniex\PoloniexApiClient.cs" />
+    <Compile Include="Exchanges\Poloniex\PoloniexAuthenticator.cs" />
+    <Compile Include="Exchanges\Poloniex\Wallet\Balance.cs" />
+    <Compile Include="Exchanges\Poloniex\Wallet\Deposit.cs" />
+    <Compile Include="Exchanges\Poloniex\Wallet\DepositWithdrawalList.cs" />
+    <Compile Include="Exchanges\Poloniex\Wallet\GeneratedDepositAddress.cs" />
+    <Compile Include="Exchanges\Poloniex\Wallet\Wallet.cs" />
+    <Compile Include="Exchanges\Poloniex\Wallet\Withdrawal.cs" />
+    <Compile Include="Helpers\SettingHelper.cs" />
     <Compile Include="Models\Currency.cs" />
     <Compile Include="Models\Exchange.cs" />
-    <Compile Include="Models\ExchangeSetting.cs" />
+    <Compile Include="Models\Setting.cs" />
     <Compile Include="Models\ExchangeState.cs" />
     <Compile Include="Models\ExchangeTradePair.cs" />
     <Compile Include="Models\ExchangeTradePairState.cs" />
@@ -281,7 +294,6 @@
     <Compile Include="Exchanges\OKCoin\OKExIntegration.cs" />
     <Compile Include="Exchanges\OKCoin\WebSocketBasecs.cs" />
     <Compile Include="Exchanges\Poloniex\PoloniexIntegration.cs" />
-    <Compile Include="Exchanges\Poloniex\PoloniexTickerJson.cs" />
     <Compile Include="Helpers\WebSocketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -312,9 +324,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Exchanges\GDAX\Helpers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -10,9 +10,12 @@ using RBBot.Core.Models;
 using RBBot.Core.Engine.Trading;
 using Gdax;
 using Gdax.Accounts;
+using RBBot.Core.Helpers;
 using Gdax.Authentication;
-using Gdax.CommonModels;
-
+using Gdax.Products;
+using System.Net;
+using System.Reflection;
+using System.Net.Configuration;
 
 namespace RBBot.Core.Exchanges.GDAX
 {
@@ -21,10 +24,17 @@ namespace RBBot.Core.Exchanges.GDAX
         
         public override string Name { get { return "GDAX"; } }
 
+        public Exchange Exchange { get; private set; }
+
         private ClientWebSocket websocket = null;
+
+        private GdaxClient gdaxClient = null;
 
         public GDAXIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
         {
+            this.Exchange = exchanges[0];
+            GdaxAuthenticator auth = new GdaxAuthenticator(this.Exchange.GetSetting("ApiKey"), this.Exchange.GetSetting("ApiPassPhrase"), this.Exchange.GetSetting("ApiSecret"));
+            gdaxClient = new GdaxClient(auth);
         }
 
         public override async Task InitializeExchangePriceProcessingAsync()
@@ -35,8 +45,7 @@ namespace RBBot.Core.Exchanges.GDAX
             // Form the initiation string
             var text = @"{ ""type"": ""subscribe"", ""product_ids"": [" + products + "] }";
 
-#warning    This is still all hardcoded here!
-            var uri = "wss://ws-feed.gdax.com";
+            var uri = this.Exchange.GetSetting("ApiWebsocketUrl");
 
             // And initialize the websocket, pasing ParseResult as the callback to parse data from GDAX
             this.websocket = await Helpers.WebSocketManager.Initialize(uri, new[] { text }, ParseResult);
@@ -47,8 +56,7 @@ namespace RBBot.Core.Exchanges.GDAX
         {
             await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }
-
-
+        
 
         // Callback when gdax send information.
         private async Task ParseResult(string result)
@@ -83,30 +91,39 @@ namespace RBBot.Core.Exchanges.GDAX
 
         }
 
-        public Task<ExchangeBalance[]> GetBalancesAsync()
-        {
-            throw new NotImplementedException();
-            //GdaxClient c = new GdaxClient();
-            //GdaxAuthenticator au = new GdaxAuthenticator()
-            //throw new NotImplementedException();
-        }
 
-        public Task<ExchangeBalance> GetBalanceAsync(Currency currency)
+        public async Task<ExchangeBalance[]> GetBalancesAsync()
         {
-            throw new NotImplementedException();
-        }
+            // Get the gdax client and list all accounts.
+            var accounts = await gdaxClient.ListAccountsAsync();
 
-        public Task DepositAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
-        {
-            throw new NotImplementedException();
-        }
+            // Transform to exchange balance objects.
+            return accounts.ToList().Select(x => new ExchangeBalance(this.Exchange, x.Available, DateTime.UtcNow, x.Currency, null, x.Id.ToString())).ToArray();
 
+            //Console.WriteLine($"GDAX Account for {x.Currency} has a balance of {x.DefaultAmount} and funded {x.FundedAmount} and holds {x.Holds}");
+        }
+        
+        /// <summary>
+        /// Withdraws money from an account in GDAX, sending it to another account address.
+        /// </summary>
+        /// <remarks>Note that we only implement withdraw and not deposit. If you think about it, we just need withdrawal and not deposit. To deposit INTO gdax, what 
+        /// we would do is the other way round: we would withdraw from another exchange!</remarks>
+        /// <param name="currency"></param>
+        /// <param name="amount"></param>
+        /// <param name="fromAccountAddress"></param>
+        /// <param name="toAccountAddress"></param>
+        /// <returns></returns>
         public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
         {
             throw new NotImplementedException();
         }
 
         public Task PlaceOrder()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetDepositAddressAsync(Currency currency)
         {
             throw new NotImplementedException();
         }

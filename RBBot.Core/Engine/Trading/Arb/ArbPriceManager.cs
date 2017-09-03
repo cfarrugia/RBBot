@@ -58,6 +58,9 @@ namespace RBBot.Core.Engine.Trading.Arb
 
         public async Task OnMarketPriceChangeAsync(PriceChangeEvent change)
         {
+            // Ignore non crypto trade pairs!
+            if (!change.ExchangeTradePair.TradePair.FromCurrency.IsCrypto || !change.ExchangeTradePair.TradePair.ToCurrency.IsCrypto) return;
+
             // Get trade pair spread. 
             ArbTradePairSpread tpSpread = this.spreadPerTradePair.GetOrAdd(change.ExchangeTradePair.TradePair, new ArbTradePairSpread(change.ExchangeTradePair.TradePair));
 
