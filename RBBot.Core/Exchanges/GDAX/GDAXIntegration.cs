@@ -97,6 +97,8 @@ namespace RBBot.Core.Exchanges.GDAX
             // Get the gdax client and list all accounts.
             var accounts = await gdaxClient.ListAccountsAsync();
 
+
+            // From the GDAX apis we never get the address. We manually input them in our database!
             // Transform to exchange balance objects.
             return accounts.ToList().Select(x => new ExchangeBalance(this.Exchange, x.Available, DateTime.UtcNow, x.Currency, null, x.Id.ToString())).ToArray();
 
@@ -115,6 +117,7 @@ namespace RBBot.Core.Exchanges.GDAX
         /// <returns></returns>
         public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
         {
+            
             throw new NotImplementedException();
         }
 
@@ -125,6 +128,7 @@ namespace RBBot.Core.Exchanges.GDAX
 
         public Task<string> GetDepositAddressAsync(Currency currency)
         {
+            // For security reasons GDAX
             throw new NotImplementedException();
         }
     }

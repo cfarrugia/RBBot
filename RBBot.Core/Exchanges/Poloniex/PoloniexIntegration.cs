@@ -12,117 +12,124 @@ using RBBot.Core.Helpers;
 
 namespace RBBot.Core.Exchanges.Poloniex
 {
-    public class PoloniexIntegration : ExchangeIntegration, IExchangeTrader
+    public class PoloniexIntegration : IExchangeTrader //,ExchangeIntegration
     {
-        public override string Name {  get { return "Poloniex";  } }
+        public string Name {  get { return "Poloniex";  } }
 
         public Exchange Exchange { get; private set; }
 
         private PoloniexApiClient poloniexClient = null;
 
-        public PoloniexIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
+        public PoloniexIntegration(Exchange exchange)
         {
-            this.Exchange = exchanges[0];
+            this.Exchange = exchange;
             this.poloniexClient = new PoloniexApiClient(this.Exchange.GetSetting("ApiUrl"), this.Exchange.GetSetting("ApiKey"), this.Exchange.GetSetting("ApiSecret"));
         }
 
-        public override async Task InitializeExchangePriceProcessingAsync()
-        {
-            string nodeCode = @"
-                 return function (options, cb) {
-                    console.log('entered');
-                    var autobahn = require('autobahn');
-                    
-                    var connection = new autobahn.Connection({
-                        url: options.url,
-                        realm: 'realm1'
-                        });
+        #region ExchangeIntegration has been commented out. Using cryptocompare instead as it seems to be more stable than this implementation!!
+        //public PoloniexIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
+        //{
+        //    this.Exchange = exchanges[0];
+        //    this.poloniexClient = new PoloniexApiClient(this.Exchange.GetSetting("ApiUrl"), this.Exchange.GetSetting("ApiKey"), this.Exchange.GetSetting("ApiSecret"));
+        //}
 
-                    connection.onopen = function(session)
-                    {
-                        session.subscribe('ticker', function(message, kwargs){
-                                options.onMessage(message, function (error, result) {
-                                    if (error) throw error;
-                                    //console.log(result);
-                                });
-                                
-                            });
-                    }
+        //public override async Task InitializeExchangePriceProcessingAsync()
+        //{
+        //    string nodeCode = @"
+        //         return function (options, cb) {
+        //            console.log('entered');
+        //            var autobahn = require('autobahn');
 
-                    connection.onclose = function()
-                    {
-                        console.log('Websocket connection closed');
-                    }
+        //            var connection = new autobahn.Connection({
+        //                url: options.url,
+        //                realm: 'realm1'
+        //                });
 
-                    connection.open();
+        //            connection.onopen = function(session)
+        //            {
+        //                session.subscribe('ticker', function(message, kwargs){
+        //                        options.onMessage(message, function (error, result) {
+        //                            if (error) throw error;
+        //                            //console.log(result);
+        //                        });
 
-                    cb();
-                }
-             ";
+        //                    });
+        //            }
 
+        //            connection.onclose = function()
+        //            {
+        //                console.log('Websocket connection closed');
+        //            }
 
-            var node = EdgeJs.Edge.Func(nodeCode);
+        //            connection.open();
 
-            var onNodeMessage = (Func<object, Task<object>>)(async (message) =>
-            {
-                try
-                {
-                    var parts = (object[])message;
-
-                    var currencyPair = parts[0].ToString();
-                    var last = Convert.ToDecimal(parts[1]);
-                    var lowestAsk = Convert.ToDecimal(parts[2]);
-                    var highestBid = Convert.ToDecimal(parts[3]);
-                    var percentChange = Convert.ToDecimal(parts[4]);
-                    var baseVolume = Convert.ToDecimal(parts[5]);
-                    var quoteVolume = Convert.ToDecimal(parts[6]);
-                    var isFrozen = parts[7].ToString();
-                    var _24hrHigh = Convert.ToDecimal(parts[8]);
-                    var _24hrLow = Convert.ToDecimal(parts[9]);
-
-                    var fromCurrency = currencyPair.Split('_')[1];
-                    var toCurrency = currencyPair.Split('_')[0];
-                    var key = this.GetPairKey(this.Exchange.Name, fromCurrency, toCurrency);
-
-                    if (this.tradingPairs.ContainsKey(key))
-                    {
-                        await this.NotifyObserverOfPriceChange(new PriceChangeEvent()
-                        {
-
-                            ExchangeTradePair = this.tradingPairs[key],
-                            Price = last,
-                            UtcTime = DateTime.UtcNow
-                        });
-
-                        return message;
+        //            cb();
+        //        }
+        //     ";
 
 
-                    }
+        //    var node = EdgeJs.Edge.Func(nodeCode);
 
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
+        //    var onNodeMessage = (Func<object, Task<object>>)(async (message) =>
+        //    {
+        //        try
+        //        {
+        //            var parts = (object[])message;
+
+        //            var currencyPair = parts[0].ToString();
+        //            var last = Convert.ToDecimal(parts[1]);
+        //            var lowestAsk = Convert.ToDecimal(parts[2]);
+        //            var highestBid = Convert.ToDecimal(parts[3]);
+        //            var percentChange = Convert.ToDecimal(parts[4]);
+        //            var baseVolume = Convert.ToDecimal(parts[5]);
+        //            var quoteVolume = Convert.ToDecimal(parts[6]);
+        //            var isFrozen = parts[7].ToString();
+        //            var _24hrHigh = Convert.ToDecimal(parts[8]);
+        //            var _24hrLow = Convert.ToDecimal(parts[9]);
+
+        //            var fromCurrency = currencyPair.Split('_')[1];
+        //            var toCurrency = currencyPair.Split('_')[0];
+        //            var key = this.GetPairKey(this.Exchange.Name, fromCurrency, toCurrency);
+
+        //            if (this.tradingPairs.ContainsKey(key))
+        //            {
+        //                await this.NotifyObserverOfPriceChange(new PriceChangeEvent()
+        //                {
+
+        //                    ExchangeTradePair = this.tradingPairs[key],
+        //                    Price = last,
+        //                    UtcTime = DateTime.UtcNow
+        //                });
+
+        //                return message;
 
 
-                return message; // message;
-            });
+        //            }
+
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.Message);
+        //        }
 
 
-            await node(new
-            {
-                url = this.Exchange.GetSetting("ApiWebsocketUrl"),
-                onMessage = onNodeMessage
-            });
+        //        return message; // message;
+        //    });
 
-        }
 
-        public override async Task ShutdownExchangePriceProcessingDownAsync()
-        {
-            return;
-        }
+        //    await node(new
+        //    {
+        //        url = this.Exchange.GetSetting("ApiWebsocketUrl"),
+        //        onMessage = onNodeMessage
+        //    });
 
+        //}
+
+        //public override async Task ShutdownExchangePriceProcessingDownAsync()
+        //{
+        //    return;
+        //}
+        #endregion
 
         public async Task<ExchangeBalance[]> GetBalancesAsync()
         {

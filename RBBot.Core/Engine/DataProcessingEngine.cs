@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using RBBot.Core.Engine.Trading;
 using RBBot.Core.Helpers;
 using RBBot.Core.Exchanges.Poloniex;
+using RBBot.Core.Exchanges.Kraken;
 
 namespace RBBot.Core.Engine
 {
@@ -24,7 +25,7 @@ namespace RBBot.Core.Engine
 
             IList<Exchange> exchangeModels = null;
             IList<Setting> settings = null;
-            List<ExchangeIntegration> integrations = null;
+            List<IExchange> integrations = null;
 
             // Get all exchangeModels. We need them to construct the integrations.
             using (var ctx = new RBBotContext())
@@ -55,13 +56,15 @@ namespace RBBot.Core.Engine
                 var ccExchangeIds = settings.Where(x => x.Name == "ReadFromCryptoCompare" && x.Value.ToLower() == "true").Select(x => x.ExchangeId).ToList();
                 var ccExchanges = exchangeModels.Where(x => ccExchangeIds.Contains(x.Id)).ToList();
 
-                integrations = new List<Exchanges.ExchangeIntegration>();
+                integrations = new List<Exchanges.IExchange>();
                 integrations.Add(new CryptoCompareIntegration(priceObservers, ccExchanges.ToArray()));
                 integrations.Add(new BitflyerIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
-                integrations.Add(new PoloniexIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Poloniex") }));
                 integrations.Add(new GDAXIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
                 integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
                 integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
+                
+                integrations.Add(new PoloniexIntegration(exchangeModels.Single(x => x.Name == "Poloniex")));
+                integrations.Add(new KrakenIntegration(exchangeModels.Single(x => x.Name == "Kraken")));
 
 
                 // Synchronize all the trading accounts.
@@ -70,8 +73,8 @@ namespace RBBot.Core.Engine
                 await ctx.SaveChangesAsync();
             }
 
-
-            foreach (var e in integrations) await e.InitializeExchangePriceProcessingAsync();
+            var readerExchanges = integrations.Where(x => x is IExchangePriceReader).Select(x => x as IExchangePriceReader).ToList();
+            foreach (var e in readerExchanges) await e.InitializeExchangePriceProcessingAsync();
         }
 
         private static async Task SynchronizeAccounts(IExchangeTrader exchangeIntegration, RBBotContext dbContext)
@@ -91,8 +94,9 @@ namespace RBBot.Core.Engine
                 var acc = existingAccounts[x.Key];
                 acc.Balance = exCurr.Balance;
                 acc.LastUpdate = exCurr.Timestamp;
-                acc.ExchangeIdentifier = exCurr.ExchangeIdentifier;
-                acc.Address = exCurr.Address;
+
+                if (exCurr.ExchangeIdentifier != null) acc.ExchangeIdentifier = exCurr.ExchangeIdentifier;
+                if (exCurr.Address != null) acc.Address = exCurr.Address;
             });
 
             // If the account doesn't exist, then create it. 

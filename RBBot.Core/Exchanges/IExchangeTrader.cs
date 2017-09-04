@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RBBot.Core.Exchanges
 {
-    public interface IExchangeTrader
+    public interface IExchangeTrader : IExchange
     {
         Task<ExchangeBalance[]> GetBalancesAsync();
 

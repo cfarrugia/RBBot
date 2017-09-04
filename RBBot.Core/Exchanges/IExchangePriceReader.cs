@@ -7,13 +7,9 @@ using System.Threading.Tasks;
 namespace RBBot.Core.Exchanges
 {
 
-    public interface IExchangePriceReader
+    public interface IExchangePriceReader : IExchange
     {
-        /// <summary>
-        /// Exchange Name
-        /// </summary>
-        string Name { get; }
-
+        
         /// <summary>
         /// List of observers
         /// </summary>
