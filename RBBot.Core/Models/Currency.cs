@@ -29,5 +29,11 @@ namespace RBBot.Core.Models
 
         public int AverageTransferTimeMinutes { get; set; }
 
+        /// <summary>
+        /// This is the daily average standard deviation and can be used to predict how bad a trade could go!
+        /// http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:standard_deviation_volatility
+        /// </summary>
+        public decimal DailyVolatilityIndex { get; set; }
+
     }
 }

@@ -9,7 +9,7 @@ namespace RBBot.Core.Engine.Trading
     public enum TradeActionType
     {
         MarketPriceCryptoExchange,
-        BalanceAccounts
+        TransferCrypto
 
     }
 }

@@ -1,0 +1,13 @@
+- We will take the bitcoin price as our source of truth. 
+- A prefered arb opportunity is one for which we have assets readily available. This will require the least transfers of course. 
+- When doing an arb we need to watch out: we might decide to transfer money and meanwhile the opportunity is not there anymore.
+- Also once the arb is done, we need to ask ourselves: how much could my exposure be whilst transferring my money back to bitcoin? Or should i risk? This is where the volatility index comes in. 
+- As much as possible we need liquidity by having money available in different coins on different exchanges. 
+- Bitcoin transfers cost money. Possibly a trade is less costly then a bitcoin transfer. Maybe do a ripple exchange and ripple transfer which is very fast and not costly? 
+- When taking an opportunity we need to calculate the time it takes to be executed. We do this by considering the volatility index and the time it takes for the currency transfer to be transacted. 
+
+
+Therefore, the conclusion is: 
+- Best arb is where Ripple is involved. Transactions are extremely fast, and the costs are low!
+- Transferring money by first converting to Ripple, and then transferring the ripple amount might actually be cheaper. 
+- An Arb might turn out to be cheaper if liquidity is available already. Consider that first!

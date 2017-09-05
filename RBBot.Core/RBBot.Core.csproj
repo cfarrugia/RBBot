@@ -238,6 +238,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\Trading\Actions\ExchangeOrderAction.cs" />
+    <Compile Include="Engine\Trading\Actions\ExchangeOrderType.cs" />
     <Compile Include="Engine\Trading\Triangulation\TriangulationManager.cs" />
     <Compile Include="Engine\Trading\Arb\ArbOpportunity.cs" />
     <Compile Include="Exchanges\ExchangeBalance.cs" />
@@ -315,7 +317,7 @@
     <Compile Include="Engine\PriceChangeEvent.cs" />
     <Compile Include="Engine\OpportunityScoreEngine.cs" />
     <Compile Include="Engine\Trading\Opportunity.cs" />
-    <Compile Include="Engine\Trading\OpportunityAction.cs" />
+    <Compile Include="Engine\Trading\ITradeAction.cs" />
     <Compile Include="Engine\Trading\TradeActionType.cs" />
     <Compile Include="Exchanges\Bitflyer\BitflyerIntegration.cs" />
     <Compile Include="Exchanges\CryptoCompare\CryptoCompareIntegration.cs" />
