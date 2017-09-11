@@ -16,6 +16,12 @@ namespace RBBot.Core.Engine.Trading
     {
 
         /// <summary>
+        /// This property stores the actions to be taken to execute this opportunity.
+        /// Note that this is a jagged array. Anything in the first index is executed in sync. anything in the second array is executed async.
+        /// </summary>
+        public ITradeAction[][] Actions { get; protected set; }
+
+        /// <summary>
         /// This is the current value as a percentage of the base trade currency of this opportunity.
         /// This amount already excludes any fees involved in doing the arb. 
         /// </summary>
@@ -32,6 +38,33 @@ namespace RBBot.Core.Engine.Trading
         public Currency OpportunityBaseCurrency { get; set; }
 
         public abstract string TypeCode { get; }
+
+
+        /// <summary>
+        /// This method is used to actually execute the opportunity
+        /// </summary>
+        /// <param name="simulate"></param>
+        public async Task ExecuteOpportunity(bool simulate = true)
+        {
+            // Loop through all actions.
+            foreach (var syncActions in this.Actions)
+            {
+                // Wait all tasks to finish, but launch in parallel!
+                Task.WaitAll(syncActions.Select(x => x.ExecuteAction(simulate)).ToArray());
+            }
+
+            using (var ctx = new RBBotContext())
+            {
+                if (this.OpportunityModel != null) return; // Should never be the case, but never know.
+
+#warning this is incomplete!!
+                lock (this.OpportunityModel)
+                {
+
+
+                }
+            }
+        }
 
 
         internal async Task UpdateOpportunity(decimal newMarginValue)

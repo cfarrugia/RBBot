@@ -1,4 +1,5 @@
 ﻿using RBBot.Core.Database;
+using RBBot.Core.Engine.Trading.Actions;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Concurrent;
@@ -64,6 +65,20 @@ namespace RBBot.Core.Engine.Trading.Arb
             this.LowerPricePair = lowerPricePair;
             this.HigherPricePair = higherPricePair;
             this.OpportunityBaseCurrency = currency;
+
+            // The actions to be taken 
+
+            this.Actions = new ITradeAction[][]
+            {
+                new ITradeAction [] { },
+                new ITradeAction []
+                {
+                    //new ExchangeOrderAction()
+
+                }
+
+            };
+
         }
 
     }

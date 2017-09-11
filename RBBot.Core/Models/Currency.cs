@@ -35,5 +35,15 @@ namespace RBBot.Core.Models
         /// </summary>
         public decimal DailyVolatilityIndex { get; set; }
 
+        /// <summary>
+        /// The average fee paid to do the transfer denominated in this currency itself.
+        /// </summary>
+        public decimal AverageTransferFee { get; set; }
+
+        public override string ToString()
+        {
+            return this.Code;
+        }
+
     }
 }

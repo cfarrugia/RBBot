@@ -24,6 +24,8 @@ namespace RBBot.Core.Models
 
         public bool IsExecuted { get; set; }
 
+        public bool? IsSimulation { get; set; }
+
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 

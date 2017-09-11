@@ -14,6 +14,7 @@ using RBBot.Core.Engine.Trading;
 using RBBot.Core.Helpers;
 using RBBot.Core.Exchanges.Poloniex;
 using RBBot.Core.Exchanges.Kraken;
+using RBBot.Core.Engine.Trading.Triangulation;
 
 namespace RBBot.Core.Engine
 {
@@ -40,6 +41,8 @@ namespace RBBot.Core.Engine
                     .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.ToCurrency))
                     .Where(x => x.ExchangeState.Code != "OFF") // Don't get offline exchanges!
                     .ToList();
+
+                TriangulationManager.GetTriangulationsForExchange(exchangeModels.Single(x => x.Name == "GDAX"));
 
                 // Get / cache the settings. 
                 settings = ctx.Settings.ToList();

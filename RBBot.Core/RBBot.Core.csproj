@@ -238,8 +238,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\Trading\Actions\CurrencyTransfer.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderAction.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderType.cs" />
+    <Compile Include="Engine\Trading\TradePairPrice.cs" />
+    <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulation.cs" />
+    <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulationEdge.cs" />
     <Compile Include="Engine\Trading\Triangulation\TriangulationManager.cs" />
     <Compile Include="Engine\Trading\Arb\ArbOpportunity.cs" />
     <Compile Include="Exchanges\ExchangeBalance.cs" />
@@ -288,7 +292,10 @@
     <Compile Include="Exchanges\Poloniex\Wallet\GeneratedDepositAddress.cs" />
     <Compile Include="Exchanges\Poloniex\Wallet\Wallet.cs" />
     <Compile Include="Exchanges\Poloniex\Wallet\Withdrawal.cs" />
+    <Compile Include="Helpers\ConcurrentHashSet.cs" />
     <Compile Include="Helpers\SettingHelper.cs" />
+    <Compile Include="Helpers\TarjanCycleDetectStack.cs" />
+    <Compile Include="Helpers\Vertex.cs" />
     <Compile Include="Models\Currency.cs" />
     <Compile Include="Models\Exchange.cs" />
     <Compile Include="Models\Setting.cs" />
