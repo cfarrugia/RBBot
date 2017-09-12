@@ -9,8 +9,8 @@ namespace RBBot.Core.Engine.Trading
 {
     public class TradePairPrice : IComparable<TradePairPrice>
     {
-        public decimal Price { get; set; } = 1m; // Default is 1 to avoid DIV0 errors.
-        public DateTime UtcLastUpdateTime { get; set; }
+        public decimal Price { get; set; } = 0m;
+        public DateTime UtcLastUpdateTime { get; set; } = DateTime.MinValue;
         public ExchangeTradePair ExchangeTradePair { get; set; }
 
         public int AgeMilliseconds { get { return (DateTime.UtcNow - this.UtcLastUpdateTime).Milliseconds; } }

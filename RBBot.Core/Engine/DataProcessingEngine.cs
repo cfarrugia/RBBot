@@ -42,8 +42,6 @@ namespace RBBot.Core.Engine
                     .Where(x => x.ExchangeState.Code != "OFF") // Don't get offline exchanges!
                     .ToList();
 
-                TriangulationManager.GetTriangulationsForExchange(exchangeModels.Single(x => x.Name == "GDAX"));
-
                 // Get / cache the settings. 
                 settings = ctx.Settings.ToList();
 
@@ -63,8 +61,8 @@ namespace RBBot.Core.Engine
                 integrations.Add(new CryptoCompareIntegration(priceObservers, ccExchanges.ToArray()));
                 integrations.Add(new BitflyerIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
                 integrations.Add(new GDAXIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
-                integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
-                integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
+                //integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
+                //integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
                 
                 integrations.Add(new PoloniexIntegration(exchangeModels.Single(x => x.Name == "Poloniex")));
                 integrations.Add(new KrakenIntegration(exchangeModels.Single(x => x.Name == "Kraken")));
