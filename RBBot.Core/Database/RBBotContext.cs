@@ -25,6 +25,8 @@ namespace RBBot.Core.Database
         public virtual DbSet<TradeAccount> TradeAccounts { get; set; }
         public virtual DbSet<TradeOpportunity> TradeOpportunities { get; set; }
         public virtual DbSet<TradeOpportunityValue> TradeOpportunityValues { get; set; }
+        public virtual DbSet<TradeOpportunityRequirementType> TradeOpportunityRequirementTypes { get; set; }
+        public virtual DbSet<TradeOpportunityRequirement> TradeOpportunityRequirements { get; set; }
         public virtual DbSet<TradeOpportunityType> TradeOpportunityTypes { get; set; }
         public virtual DbSet<TradePair> TradePairs { get; set; }
         public virtual DbSet<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
@@ -52,9 +54,23 @@ namespace RBBot.Core.Database
 
             modelBuilder.Entity<Exchange>()
                 .HasMany(e => e.TradeOpportunityTransactions)
-                .WithRequired(e => e.Exchange)
+                .WithRequired(e => e.ExecutedOnExchange)
                 .HasForeignKey(e => e.ExecuteOnExchangeId)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TradeAccount>()
+                .HasMany(e => e.FromAccountTransactions)
+                .WithRequired(e => e.FromAccount)
+                .HasForeignKey(e => e.FromAccountId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TradeAccount>()
+                .HasMany(e => e.ToAccountTransactions)
+                .WithRequired(e => e.ToAccount)
+                .HasForeignKey(e => e.ToAccountId)
+                .WillCascadeOnDelete(false);
+
+
 
             modelBuilder.Entity<Setting>()
                 .Property(e => e.Name)
@@ -67,6 +83,19 @@ namespace RBBot.Core.Database
             modelBuilder.Entity<ExchangeState>()
                 .Property(e => e.Code)
                 .IsUnicode(false);
+
+            modelBuilder.Entity<TradeOpportunityRequirementType>()
+               .Property(e => e.Name)
+               .IsUnicode(false);
+
+            modelBuilder.Entity<TradeOpportunityRequirementType>()
+                .Property(e => e.Code)
+                .IsUnicode(false);
+
+
+            modelBuilder.Entity<TradeOpportunityRequirement>()
+                .Property(e => e.Message)
+                .IsUnicode(true);
 
             modelBuilder.Entity<ExchangeState>()
                 .HasMany(e => e.Exchanges)
@@ -124,11 +153,7 @@ namespace RBBot.Core.Database
                 .WithRequired(e => e.TradeOpportunity)
                 .WillCascadeOnDelete(false);
 
-            //modelBuilder.Entity<TradeOpportunity>()
-            //    .HasMany(e => e.TradeOpportunityValues)
-            //    .WithRequired(e => e.TradeOpportunity)
-            //    .WillCascadeOnDelete(false);
-
+           
             modelBuilder.Entity<TradeOpportunityType>()
                 .Property(e => e.Code)
                 .IsUnicode(false);

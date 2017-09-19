@@ -1,5 +1,6 @@
 namespace RBBot.Core.Models
 {
+    using Exchanges;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -63,5 +64,10 @@ namespace RBBot.Core.Models
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
+
+        // Persistence models shouldn't have these two properties. To be honest its really convenient to have these here!
+        // These are intiated at start up. 
+
+        public IExchangeTrader TradingIntegration { get; set; }
     }
 }

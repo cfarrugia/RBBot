@@ -56,5 +56,10 @@ namespace RBBot.Core.Models
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<MarketPrice> MarketPrices { get; set; }
+
+        /// <summary>
+        /// This is not mapped to DB. We keep this internally as we need to know what the last price was.
+        /// </summary>
+        public decimal LatestPrice { get; set; }
     }
 }

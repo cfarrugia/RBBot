@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using RBBot.Core.Models;
 using RBBot.Core.Helpers;
+using RBBot.Core.Engine.Trading.Actions;
+using RBBot.Core.Engine.Trading;
 
 namespace RBBot.Core.Exchanges.Kraken
 {
@@ -105,12 +107,18 @@ namespace RBBot.Core.Exchanges.Kraken
             throw new NotImplementedException();
         }
 
-        public Task PlaceOrder()
+
+        public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
         {
             throw new NotImplementedException();
         }
 
-        public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
+        public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
             throw new NotImplementedException();
         }

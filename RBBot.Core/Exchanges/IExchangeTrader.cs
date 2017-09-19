@@ -1,4 +1,6 @@
-﻿using RBBot.Core.Models;
+﻿using RBBot.Core.Engine.Trading;
+using RBBot.Core.Engine.Trading.Actions;
+using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,9 @@ namespace RBBot.Core.Exchanges
 
         Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress);
 
-        Task PlaceOrder();
+        Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair);
+
+        TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair);
+
     }
 }

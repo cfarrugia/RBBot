@@ -32,5 +32,11 @@ namespace RBBot.Core.Models
         public virtual Currency Currency { get; set; }
 
         public virtual Exchange Exchange { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TradeOpportunityTransaction> FromAccountTransactions { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TradeOpportunityTransaction> ToAccountTransactions { get; set; }
     }
 }

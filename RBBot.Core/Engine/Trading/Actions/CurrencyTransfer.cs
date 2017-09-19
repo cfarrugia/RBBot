@@ -21,10 +21,15 @@ namespace RBBot.Core.Engine.Trading.Actions
 
         public TradeAccount FromAccount { get; private set; }
         public TradeAccount ToAccount { get; private set; }
-        public decimal TransferAmount { get; private set; }
 
         public IExchangeTrader FromTraderIntegration { get; private set; }
         public IExchangeTrader ToTraderIntegration { get; private set; }
+        public decimal TransactionAmount { get; private set; }
+
+
+        public ITradeAction[] ChildrenActions { get; set; }
+        public bool ExecuteChildrenInParallel { get; set; }
+        public bool ExecuteBeforeChildren { get; set; }
 
         public CurrencyTransfer(Currency currency, IExchangeTrader fromExchangeTrader, IExchangeTrader toExchangeTrader, decimal transferAmount)
         {
@@ -32,30 +37,33 @@ namespace RBBot.Core.Engine.Trading.Actions
             this.ToTraderIntegration = toExchangeTrader;
             this.FromAccount = fromExchangeTrader.Exchange.TradeAccounts.Where(x => x.Currency == currency).Single();
             this.ToAccount = toExchangeTrader.Exchange.TradeAccounts.Where(x => x.Currency == currency).Single();
-            this.TransferAmount = transferAmount;
             this.EstimatedCost = currency.AverageTransferFee;
             this.EstimatedTimeToExecute = new TimeSpan(0, currency.AverageTransferTimeMinutes, 0);
             this.BaseCurrency = currency;
+            this.TransactionAmount = TransactionAmount;
             this.MaxExposureCost = this.BaseCurrency.DailyVolatilityIndex / (24 * 60 * 100m) * transferAmount * currency.AverageTransferTimeMinutes; // At worse, this is the maximum amount one would expect to loose during the transfer of funds
         }
-        public async Task ExecuteAction(bool simulate)
+
+        public async Task<TradeOpportunityTransaction> ExecuteAction(bool simulate)
         {
-            // Decrement from account, increment to account.
-            this.FromAccount.Balance -= this.EstimatedCost + this.TransferAmount;
-            this.ToAccount.Balance += this.TransferAmount;
+          // Decrement from account, increment to account.
+            this.FromAccount.Balance -= this.EstimatedCost + this.TransactionAmount;
+            this.ToAccount.Balance += this.TransactionAmount;
 
             using (var ctx = new RBBotContext())
             {
                 ctx.Entry(this.FromAccount).State = System.Data.Entity.EntityState.Modified;
                 ctx.Entry(this.ToAccount).State = System.Data.Entity.EntityState.Modified;
                 await ctx.SaveChangesAsync();
-            }
 
-            if (!simulate)
-            {
+
+                if (!simulate)
+                {
 #warning Still to implement the actual thing!!
-            }
+                }
 
+                throw new NotImplementedException();
+            }
         }
     }
 }

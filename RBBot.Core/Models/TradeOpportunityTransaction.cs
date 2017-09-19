@@ -81,11 +81,11 @@ namespace RBBot.Core.Models
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int ExecuteOnExchangeId { get; set; }
 
-        public virtual Exchange Exchange { get; set; }
+        public virtual Exchange ExecutedOnExchange { get; set; }
 
-        public virtual TradeAccount TradeAccount { get; set; }
+        public virtual TradeAccount FromAccount { get; set; }
 
-        public virtual TradeAccount TradeAccount1 { get; set; }
+        public virtual TradeAccount ToAccount { get; set; }
 
         public virtual TradeOpportunity TradeOpportunity { get; set; }
     }

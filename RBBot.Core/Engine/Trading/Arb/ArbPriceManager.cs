@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace RBBot.Core.Engine.Trading.Arb
 {
     /// <summary>
-    /// This market price tracker maintains a list of all trading pairs, their latest price and 
+    /// The arb manager works by maintaining a matrix per trade-pair. Think of a 3dimensional matrix with first dimension 
     /// </summary>
     public class ArbPriceManager : IMarketPriceObserver 
     {

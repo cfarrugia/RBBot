@@ -240,11 +240,16 @@
   <ItemGroup>
     <Compile Include="Engine\Trading\Actions\CurrencyTransfer.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderAction.cs" />
+    <Compile Include="Engine\Trading\Actions\ExchangeOrderResponse.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderType.cs" />
+    <Compile Include="Engine\Trading\NullAction.cs" />
+    <Compile Include="Engine\Trading\OpportunityRequirement.cs" />
     <Compile Include="Engine\Trading\TradePairPrice.cs" />
+    <Compile Include="Engine\Trading\TransactionFee.cs" />
     <Compile Include="Engine\Trading\Triangulation\CycleFinder.cs" />
     <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulation.cs" />
     <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulationEdge.cs" />
+    <Compile Include="Engine\Trading\Triangulation\TriangularationOpportunity.cs" />
     <Compile Include="Engine\Trading\Triangulation\TriangulationManager.cs" />
     <Compile Include="Engine\Trading\Arb\ArbOpportunity.cs" />
     <Compile Include="Exchanges\ExchangeBalance.cs" />
@@ -299,6 +304,7 @@
     <Compile Include="Helpers\Vertex.cs" />
     <Compile Include="Models\Currency.cs" />
     <Compile Include="Models\Exchange.cs" />
+    <Compile Include="Models\TradeOpportunityRequirementType.cs" />
     <Compile Include="Models\Setting.cs" />
     <Compile Include="Models\ExchangeState.cs" />
     <Compile Include="Models\ExchangeTradePair.cs" />
@@ -306,6 +312,7 @@
     <Compile Include="Models\MarketPrice.cs" />
     <Compile Include="Database\RBBotContext.cs" />
     <Compile Include="Models\TradeAccount.cs" />
+    <Compile Include="Models\TradeOpportunityRequirement.cs" />
     <Compile Include="Models\TradeOpportunityValue.cs" />
     <Compile Include="Models\TradeOpportunity.cs" />
     <Compile Include="Models\TradeOpportunityTransaction.cs" />

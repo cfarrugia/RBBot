@@ -10,6 +10,21 @@ namespace RBBot.Core.Engine.Trading
     public interface ITradeAction
     {
         /// <summary>
+        /// Pointer to the children action, if any.
+        /// </summary>
+        ITradeAction[] ChildrenActions { get; set; }
+
+        /// <summary>
+        /// Flags whether it is safe to run children in parallel.
+        /// </summary>
+        bool ExecuteChildrenInParallel {get; set; }
+
+        /// <summary>
+        /// Flags whether this action should be run before or after the children have executed.
+        /// </summary>
+        bool ExecuteBeforeChildren { get; set; }
+
+        /// <summary>
         /// The actual cost of doing this action (for a currency transfer this is a fixed rate. For an exchange this is a percentage of the base currency amount)
         /// </summary>
         decimal EstimatedCost { get; }
@@ -29,6 +44,11 @@ namespace RBBot.Core.Engine.Trading
         /// </summary>
         TimeSpan EstimatedTimeToExecute { get; }
 
-        Task ExecuteAction(bool simulate);
+        /// <summary>
+        /// Returns the model representing the transaction linked to the action taken.
+        /// </summary>
+        /// <param name="simulate">flag simulation or real actions.</param>
+        /// <returns></returns>
+        Task<TradeOpportunityTransaction> ExecuteAction(bool simulate);
     }
 }

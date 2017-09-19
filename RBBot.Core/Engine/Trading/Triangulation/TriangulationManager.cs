@@ -59,8 +59,8 @@ namespace RBBot.Core.Engine.Trading.Triangulation
             // 
             foreach (var tria in triangulations)
             {
-                var opporunity = (tria.UpdatePriceAndGetValue(change) - 1m) * 100m;
-                if (opporunity > 0m)
+                var opporunity = (tria.UpdatePriceAndGetValue(change) - 1m);
+                if (opporunity > 0.0025m) // More than .3% of opportunity
                 {
                     Console.WriteLine($"Found a triangulation opportunity on {change.ExchangeTradePair.Exchange} of {opporunity:0.00%} for cycle: {tria}");
                 }

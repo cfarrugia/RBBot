@@ -51,6 +51,10 @@
       <HintPath>..\packages\System.Configuration.ConfigurationManager.4.4.0\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Reactive, Version=4.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.4.0.0-preview00001\lib\net46\System.Reactive.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>

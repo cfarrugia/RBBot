@@ -9,6 +9,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using RBBot.Core.Helpers;
+using RBBot.Core.Engine.Trading.Actions;
 
 namespace RBBot.Core.Exchanges.Poloniex
 {
@@ -161,7 +162,12 @@ namespace RBBot.Core.Exchanges.Poloniex
             throw new NotImplementedException();
         }
 
-        public Task PlaceOrder()
+        public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
             throw new NotImplementedException();
         }

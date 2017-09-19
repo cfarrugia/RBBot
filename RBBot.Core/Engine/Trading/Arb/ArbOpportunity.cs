@@ -60,24 +60,51 @@ namespace RBBot.Core.Engine.Trading.Arb
 
         #endregion
 
+
+        public override Task<TradeOpportunityRequirement[]> GetAndCheckRequirements()
+        {
+            // The requirements for an arb opportunity, aside from the actual arb itself, is to have enough funds to execute it.
+            
+
+
+#warning Implement
+            throw new NotImplementedException();
+        }
+
+
+        public override ITradeAction GetTradeAction(decimal amount)
+        {
+            // We will run through an example. Let's say the arb is between ETH -> BTC. 
+            // On Ex1, ETH/BTC = 0.015
+            // On Ex2, ETH/BTC = 0.017
+            // We want to Buy ETH on ex1 and sell ETH on ex2
+            // This means we need to have BTC on ex1
+            // This means we need to have ETH on ex2
+            // Let's assume we do, and the arb can be executed. 
+            // And let's assume we do a 1ETH trade.
+            // On EX1 we take 0.015BTC and buy 1ETH (the lower price pair!)
+            // On EX2 we take 1ETH and buy 0.017BTC (the higher price pair!)
+            // At the end i will find myself with an additional 0.017 - 0.015 = 0.002BTC.
+            return new NullAction()
+            {
+                ChildrenActions = new ITradeAction[]
+                {
+                    new ExchangeOrderAction(this.LowerPricePair.ExchangeTradePair, ExchangeOrderType.Buy, amount),
+                    new ExchangeOrderAction(this.HigherPricePair.ExchangeTradePair, ExchangeOrderType.Sell, amount)
+                }
+            };
+        }
+
+        public override decimal GetMaximumAmountThatCanBeTransacted()
+        {
+            throw new NotImplementedException();
+        }
+
         internal ArbOpportunity(TradePairPrice lowerPricePair, TradePairPrice higherPricePair, Currency currency)
         {
             this.LowerPricePair = lowerPricePair;
             this.HigherPricePair = higherPricePair;
             this.OpportunityBaseCurrency = currency;
-
-            // The actions to be taken 
-
-            this.Actions = new ITradeAction[][]
-            {
-                new ITradeAction [] { },
-                new ITradeAction []
-                {
-                    //new ExchangeOrderAction()
-
-                }
-
-            };
 
         }
 

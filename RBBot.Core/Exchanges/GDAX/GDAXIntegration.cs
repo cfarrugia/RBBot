@@ -16,6 +16,7 @@ using Gdax.Products;
 using System.Net;
 using System.Reflection;
 using System.Net.Configuration;
+using RBBot.Core.Engine.Trading.Actions;
 
 namespace RBBot.Core.Exchanges.GDAX
 {
@@ -121,15 +122,24 @@ namespace RBBot.Core.Exchanges.GDAX
             throw new NotImplementedException();
         }
 
-        public Task PlaceOrder()
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<string> GetDepositAddressAsync(Currency currency)
         {
             // For security reasons GDAX
             throw new NotImplementedException();
+        }
+
+        public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
+        {
+            // GDAX uses the "from" pair to calculate fees
+            // Otherwise we need to convert first. The is equal to the order amount * fee percent.
+            var fee = orderAmount * tradePair.FeePercent;
+
+            return new TransactionFee() { Amount = fee, Currency = tradePair.TradePair.FromCurrency };
         }
     }
 }

@@ -49,6 +49,9 @@ namespace RBBot.Core.Exchanges
 
         protected async Task NotifyObserverOfPriceChange(PriceChangeEvent priceEvent)
         {
+            // Get the trade pair and update its price.
+            priceEvent.ExchangeTradePair.LatestPrice = priceEvent.Price;
+
             // Loop through the observers and signal change.
             foreach (var observer in this.PriceObservers)
             {

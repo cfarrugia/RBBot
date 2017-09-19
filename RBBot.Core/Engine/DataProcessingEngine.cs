@@ -20,6 +20,9 @@ namespace RBBot.Core.Engine
 {
     public static class DataProcessingEngine
     {
+
+        private readonly static Dictionary<Exchange, IExchangeTrader> TradeExchangeDictionary; 
+
         public static async Task InitializeEngine(IMarketPriceObserver[] priceObservers)
         {
 
@@ -70,12 +73,19 @@ namespace RBBot.Core.Engine
 
                 // Synchronize all the trading accounts.
                 var tradingExchanges = integrations.Where(x => x is IExchangeTrader).Select(x => x as IExchangeTrader).ToList();
-                foreach (var te in tradingExchanges) await SynchronizeAccounts(te, ctx);
+                foreach (var te in tradingExchanges)
+                {
+                    te.Exchange.TradingIntegration = te; // Set the trading integration.
+                    await SynchronizeAccounts(te, ctx);
+                }
                 await ctx.SaveChangesAsync();
             }
 
             var readerExchanges = integrations.Where(x => x is IExchangePriceReader).Select(x => x as IExchangePriceReader).ToList();
-            foreach (var e in readerExchanges) await e.InitializeExchangePriceProcessingAsync();
+            foreach (var e in readerExchanges)
+            {
+                await e.InitializeExchangePriceProcessingAsync();
+            }
         }
 
         private static async Task SynchronizeAccounts(IExchangeTrader exchangeIntegration, RBBotContext dbContext)
