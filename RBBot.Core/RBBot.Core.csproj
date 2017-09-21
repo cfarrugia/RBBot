@@ -325,7 +325,7 @@
     <Compile Include="Engine\Alerting\WebNotifier.cs" />
     <Compile Include="Engine\AutoTradingEngine.cs" />
     <Compile Include="Engine\DataProcessingEngine.cs" />
-    <Compile Include="Engine\Trading\IMarketPriceObserver.cs" />
+    <Compile Include="Engine\Trading\IMarketPriceProcessor.cs" />
     <Compile Include="Engine\Trading\Recorder\MarketPriceRecorder.cs" />
     <Compile Include="Engine\Trading\Arb\ArbPriceManager.cs" />
     <Compile Include="Engine\Trading\Arb\ArbTradePairSpread.cs" />

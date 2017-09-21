@@ -13,7 +13,7 @@ namespace RBBot.Core.Engine.Trading.Arb
     /// <summary>
     /// The arb manager works by maintaining a matrix per trade-pair. Think of a 3dimensional matrix with first dimension 
     /// </summary>
-    public class ArbPriceManager : IMarketPriceObserver 
+    public class ArbPriceManager : IMarketPriceProcessor 
     {
         #region Singleton initialization
 
@@ -56,10 +56,10 @@ namespace RBBot.Core.Engine.Trading.Arb
         private ConcurrentDictionary<string, ArbOpportunity> opportunities = new ConcurrentDictionary<string, ArbOpportunity>();
 
 
-        public async Task OnMarketPriceChangeAsync(PriceChangeEvent change)
+        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change)
         {
             // Ignore non crypto trade pairs!
-            if (!change.ExchangeTradePair.TradePair.FromCurrency.IsCrypto || !change.ExchangeTradePair.TradePair.ToCurrency.IsCrypto) return;
+            if (!change.ExchangeTradePair.TradePair.FromCurrency.IsCrypto || !change.ExchangeTradePair.TradePair.ToCurrency.IsCrypto) return new Opportunity[] { };
 
             // Get trade pair spread. 
             ArbTradePairSpread tpSpread = this.spreadPerTradePair.GetOrAdd(change.ExchangeTradePair.TradePair, new ArbTradePairSpread(change.ExchangeTradePair.TradePair));
@@ -72,7 +72,7 @@ namespace RBBot.Core.Engine.Trading.Arb
             var margin = CalculateOpportunityMargin(tpSpread.MinimumValuedPair, tpSpread.MaximumValuedPair);
 
             // If margin is zero, then return. 
-            if (margin == 0m) return;
+            if (margin == 0m) return new Opportunity[] { };
 
             // Get or add the opportunity object.
 #warning Not sure how to define the currency. This is somehow the base currency.
@@ -83,7 +83,9 @@ namespace RBBot.Core.Engine.Trading.Arb
             //
             Console.WriteLine($"Trade Opportunity of {margin:0.00}% for {tpSpread.MinimumValuedPair.ExchangeTradePair.TradePair} with Price on {tpSpread.MinimumValuedPair.ExchangeTradePair.Exchange} of {tpSpread.MinimumValuedPair.Price}/ Age:{tpSpread.MinimumValuedPair.AgeMilliseconds}ms and {tpSpread.MaximumValuedPair.ExchangeTradePair.Exchange} of {tpSpread.MaximumValuedPair.Price} / Age:{tpSpread.MaximumValuedPair.AgeMilliseconds}ms ");
 
-
+#warning Rewrite this method to get a list of opportunities!
+            // 
+            return new Opportunity[] { opportunity };
         }
 
 

@@ -14,7 +14,7 @@ namespace RBBot.Core.Engine.Trading.Triangulation
     /// This is a pretty simple observer. It keeps track of the current market price for each exchange pair and seeks any possible triangulation within the same exchange
     /// 
     /// </summary>
-    public class TriangulationManager : IMarketPriceObserver
+    public class TriangulationManager : IMarketPriceProcessor
     {
         #region Singleton initialization
 
@@ -51,21 +51,26 @@ namespace RBBot.Core.Engine.Trading.Triangulation
         /// </summary>
         private ConcurrentDictionary<Exchange, ExchangeTriangulation[]> tradePairCycles = new ConcurrentDictionary<Exchange, ExchangeTriangulation[]>();
 
-        public async Task OnMarketPriceChangeAsync(PriceChangeEvent change)
+        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change)
         {
             // First time we receive a price, we generate 
             ExchangeTriangulation[] triangulations = this.tradePairCycles.GetOrAdd(change.ExchangeTradePair.Exchange, GetTriangulationsForExchange(change.ExchangeTradePair.Exchange));
 
             // 
+            List<Opportunity> opportunities = new List<Opportunity>();
+
             foreach (var tria in triangulations)
             {
                 var opporunity = (tria.UpdatePriceAndGetValue(change) - 1m);
                 if (opporunity > 0.0025m) // More than .3% of opportunity
                 {
                     Console.WriteLine($"Found a triangulation opportunity on {change.ExchangeTradePair.Exchange} of {opporunity:0.00%} for cycle: {tria}");
+                    opportunities.Add(new TriangularationOpportunity(tria));
                 }
             }
 
+            // return all opportunities
+            return opportunities;
             
         }
 

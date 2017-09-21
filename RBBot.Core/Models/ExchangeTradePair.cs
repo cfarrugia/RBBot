@@ -60,6 +60,7 @@ namespace RBBot.Core.Models
         /// <summary>
         /// This is not mapped to DB. We keep this internally as we need to know what the last price was.
         /// </summary>
+        [NotMapped]
         public decimal LatestPrice { get; set; }
     }
 }

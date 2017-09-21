@@ -5,7 +5,7 @@ namespace RBBot.Core.Exchanges.OKCoin
 {
     public class OKCoinCNIntegration : OKCoinIntegration
     {
-        public OKCoinCNIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchange) : base(priceObservers, exchange)
+        public OKCoinCNIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchange) : base(priceObservers, exchange)
         {
         }
         public override string Name { get { return "OKCoin.cn"; } }

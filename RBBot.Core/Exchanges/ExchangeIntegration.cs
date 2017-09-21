@@ -15,7 +15,7 @@ namespace RBBot.Core.Exchanges
         /// </summary>
         /// <param name="priceObservers">The list of price observers</param>
         /// <param name="exchange">The full exchange db object (with all children items included).</param>
-        public ExchangeIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges)
+        public ExchangeIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchanges)
         {
             //
             this.PriceObservers = priceObservers;
@@ -40,7 +40,9 @@ namespace RBBot.Core.Exchanges
 
         public abstract string Name { get; }
 
-        public IEnumerable<IMarketPriceObserver> PriceObservers { get; set; }
+        public IEnumerable<IMarketPriceProcessor> PriceObservers { get; set; }
+
+        public event Action<PriceChangeEvent> OnPriceChangeHandler;
 
         public abstract Task InitializeExchangePriceProcessingAsync();
 
@@ -49,14 +51,18 @@ namespace RBBot.Core.Exchanges
 
         protected async Task NotifyObserverOfPriceChange(PriceChangeEvent priceEvent)
         {
+            
             // Get the trade pair and update its price.
             priceEvent.ExchangeTradePair.LatestPrice = priceEvent.Price;
 
-            // Loop through the observers and signal change.
-            foreach (var observer in this.PriceObservers)
-            {
-                await observer.OnMarketPriceChangeAsync(priceEvent);
-            }
+            // If somebody registered to the pricechange event, then call it.
+            if (this.OnPriceChangeHandler != null) this.OnPriceChangeHandler(priceEvent);
+
+            //// Loop through the observers and signal change.
+            //foreach (var observer in this.PriceObservers)
+            //{
+            //    await observer.OnMarketPriceChangeAsync(priceEvent);
+            //}
 
         }
 

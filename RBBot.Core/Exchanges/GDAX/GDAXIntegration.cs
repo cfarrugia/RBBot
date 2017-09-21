@@ -31,7 +31,7 @@ namespace RBBot.Core.Exchanges.GDAX
 
         private GdaxClient gdaxClient = null;
 
-        public GDAXIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
+        public GDAXIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
         {
             this.Exchange = exchanges[0];
             GdaxAuthenticator auth = new GdaxAuthenticator(this.Exchange.GetSetting("ApiKey"), this.Exchange.GetSetting("ApiPassPhrase"), this.Exchange.GetSetting("ApiSecret"));
@@ -64,8 +64,6 @@ namespace RBBot.Core.Exchanges.GDAX
         {
             try
             {
-
-
                 // We just want matches. Discard everything else.
                 if (result.Contains("match"))
                 {

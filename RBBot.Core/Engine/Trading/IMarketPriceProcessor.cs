@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace RBBot.Core.Engine.Trading
 {
-    public interface IMarketPriceObserver
+    public interface IMarketPriceProcessor
     {
-        Task OnMarketPriceChangeAsync(PriceChangeEvent change);
+        Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change);
 
     }
 }

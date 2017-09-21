@@ -12,6 +12,12 @@ namespace RBBot.Core.Engine.Trading.Triangulation
         public override string TypeCode { get { return "EXC-TRIAN"; } }
         private TriangularationOpportunity() { }
 
+        internal TriangularationOpportunity(ExchangeTriangulation triangulation)
+        {
+#warning Implement
+        }
+
+
 #warning implement
         public override Task<TradeOpportunityRequirement[]> GetAndCheckRequirements()
         {

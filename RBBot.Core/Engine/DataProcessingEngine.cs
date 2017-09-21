@@ -23,7 +23,7 @@ namespace RBBot.Core.Engine
 
         private readonly static Dictionary<Exchange, IExchangeTrader> TradeExchangeDictionary; 
 
-        public static async Task InitializeEngine(IMarketPriceObserver[] priceObservers)
+        public static async Task<IExchange[]> InitializeEngine(IMarketPriceProcessor[] priceObservers)
         {
 
 
@@ -84,8 +84,11 @@ namespace RBBot.Core.Engine
             var readerExchanges = integrations.Where(x => x is IExchangePriceReader).Select(x => x as IExchangePriceReader).ToList();
             foreach (var e in readerExchanges)
             {
-                await e.InitializeExchangePriceProcessingAsync();
+                Task.Run(async () => e.InitializeExchangePriceProcessingAsync());
             }
+
+            // Return list of discovered integrations. These will be used to observe the the pricing data.
+            return integrations.ToArray();
         }
 
         private static async Task SynchronizeAccounts(IExchangeTrader exchangeIntegration, RBBotContext dbContext)

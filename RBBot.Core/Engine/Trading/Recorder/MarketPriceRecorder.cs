@@ -15,7 +15,7 @@ namespace RBBot.Core.Engine.Trading.Recorder
     /// <summary>
     /// On a price change, this market price recorder will just record to db asynchronously.
     /// </summary>
-    public class MarketPriceRecorder : IMarketPriceObserver
+    public class MarketPriceRecorder : IMarketPriceProcessor
     {
 
         #region Singleton Initialization
@@ -52,7 +52,7 @@ namespace RBBot.Core.Engine.Trading.Recorder
         /// On market price change this is called to persist the information to db.
         /// </summary>
         /// <param name="change"></param>
-        public async Task OnMarketPriceChangeAsync(PriceChangeEvent change)
+        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change)
         {
             // Save to database.
             using (var ctx = new RBBotContext())
@@ -68,6 +68,9 @@ namespace RBBot.Core.Engine.Trading.Recorder
                 //Console.WriteLine($"Price Change on {change.ExchangeTradePair.Exchange.Name} for {change.ExchangeTradePair.TradePair.FromCurrency.Code} - {change.ExchangeTradePair.TradePair.ToCurrency.Code}. New Price: {change.Price}");
                 
                 await ctx.SaveChangesAsync();
+
+                // Always return null! There's no opportunity in the observer.
+                return new Opportunity[] { };
 
             }
         }

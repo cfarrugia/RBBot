@@ -11,7 +11,7 @@ namespace RBBot.Core.Exchanges.Bitflyer
 {
     public class BitflyerIntegration : ExchangeIntegration
     {
-        public BitflyerIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
+        public BitflyerIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
         {
         }
 

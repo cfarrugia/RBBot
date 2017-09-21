@@ -19,7 +19,7 @@ namespace RBBot.Core.Exchanges.OKCoin
     /// </summary>
     public abstract class OKCoinIntegration : ExchangeIntegration
     {
-        public OKCoinIntegration(IMarketPriceObserver[] priceObservers, Exchange[] exchange) : base(priceObservers, exchange)
+        public OKCoinIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchange) : base(priceObservers, exchange)
         {
         }
 

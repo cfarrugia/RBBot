@@ -11,7 +11,7 @@ namespace RBBot.Core.Exchanges.CryptoCompare
 {
     public class CryptoCompareIntegration : ExchangeIntegration
     {
-        public CryptoCompareIntegration(IMarketPriceObserver[] priceObservers, Exchange[] ccExchanges) : base(priceObservers, ccExchanges)
+        public CryptoCompareIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] ccExchanges) : base(priceObservers, ccExchanges)
         {
             
         }
