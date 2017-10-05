@@ -6,11 +6,11 @@ namespace RBBot.Core.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("TradeOpportunityRequirementType")]
-    public partial class TradeOpportunityRequirementType
+    [Table("TradeOpportunityState")]
+    public partial class TradeOpportunityState
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public TradeOpportunityRequirementType()
+        public TradeOpportunityState()
         {
         }
 
@@ -18,16 +18,15 @@ namespace RBBot.Core.Models
         public int Id { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
-
-        [Required]
-        [StringLength(20)]
+        [StringLength(64)]
         public string Code { get; set; }
 
-        [NotMapped]
-        public static TradeOpportunityRequirementType[] RequirementTypes { get; set; }
+        [Required]
+        [StringLength(1024)]
+        public string Description { get; set; }
 
+        [NotMapped]
+        public static TradeOpportunityState[] States { get; set; }
 
     }
 }

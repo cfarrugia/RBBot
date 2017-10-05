@@ -1,4 +1,5 @@
 ﻿using RBBot.Core.Engine.Trading;
+using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace RBBot.Core.Engine.Trading
 {
     public interface IMarketPriceProcessor
     {
-        Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change);
+        Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(ExchangeTradePair changePair);
 
     }
 }

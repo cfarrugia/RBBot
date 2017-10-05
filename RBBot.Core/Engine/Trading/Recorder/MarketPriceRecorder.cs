@@ -52,16 +52,16 @@ namespace RBBot.Core.Engine.Trading.Recorder
         /// On market price change this is called to persist the information to db.
         /// </summary>
         /// <param name="change"></param>
-        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change)
+        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(ExchangeTradePair change)
         {
             // Save to database.
             using (var ctx = new RBBotContext())
             {
                 ctx.MarketPrices.Add(new Models.MarketPrice()
                 {
-                    ExchangeTradePairId = change.ExchangeTradePair.Id,
-                    Price = change.Price,
-                    Timestamp = change.UtcTime
+                    ExchangeTradePairId = change.Id,
+                    Price = change.LatestPrice,
+                    Timestamp = change.LatestUpdate
                 });
 
                 // Write to console.

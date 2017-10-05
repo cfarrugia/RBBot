@@ -24,5 +24,9 @@ namespace RBBot.Core.Models
         [Required]
         [StringLength(1024)]
         public string Description { get; set; }
+
+
+        [NotMapped]
+        public static TradeOpportunityType[] Types { get; set; }
     }
 }

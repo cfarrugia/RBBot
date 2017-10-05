@@ -1,5 +1,6 @@
 ﻿using RBBot.Core.Database;
 using RBBot.Core.Engine.Trading.Actions;
+using RBBot.Core.Helpers;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Concurrent;
@@ -22,14 +23,27 @@ namespace RBBot.Core.Engine.Trading.Arb
         /// <summary>
         /// This is the lower trade price
         /// </summary>
-        public TradePairPrice LowerPricePair { get; private set; }
+        public ExchangeTradePair LowerPricePair { get; private set; }
 
         /// <summary>
         /// This is the higher trade price
         /// </summary>
-        public TradePairPrice HigherPricePair { get; private set; }
+        public ExchangeTradePair HigherPricePair { get; private set; }
+
+        private TradeAccount LowerAccount;
+
+        private TradeAccount HigherAccount;
 
         public override string TypeCode { get { return "CRYPT-ARB"; } }
+
+        public override string UniqueIdentifier 
+        {
+            get
+            {
+                // The unique identifier is the opportunity type, and the lower to higher tradepairs.
+                return $"{this.TypeCode} | {this.LowerPricePair} -> {this.HigherPricePair}";
+            }
+        }
 
 
         #region Object overrides
@@ -40,7 +54,7 @@ namespace RBBot.Core.Engine.Trading.Arb
 
             var tp = (ArbOpportunity)obj;
 
-            return tp.LowerPricePair.ExchangeTradePair == this.LowerPricePair.ExchangeTradePair && tp.HigherPricePair.ExchangeTradePair == this.HigherPricePair.ExchangeTradePair;
+            return tp.LowerPricePair == this.LowerPricePair && tp.HigherPricePair == this.HigherPricePair;
         }
 
         /// <summary>
@@ -49,28 +63,64 @@ namespace RBBot.Core.Engine.Trading.Arb
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return (this.HigherPricePair.ExchangeTradePair.GetHashCode() * 10000) + this.LowerPricePair.ExchangeTradePair.GetHashCode();
+            return (this.HigherPricePair.GetHashCode() * 10000) + this.LowerPricePair.GetHashCode();
         }
 
 
         public override string ToString()
         {
-            return ArbPriceManager.GetOpportunityKey(this.LowerPricePair, this.HigherPricePair);
+            return this.TypeCode + " | " + ArbPriceManager.GetOpportunityKey(this.LowerPricePair, this.HigherPricePair);
         }
 
         #endregion
 
 
-        public override Task<TradeOpportunityRequirement[]> GetAndCheckRequirements()
+        public override TradeOpportunityRequirement[] GetAndCheckRequirements()
         {
-            // The requirements for an arb opportunity, aside from the actual arb itself, is to have enough funds to execute it.
-            
+            List<TradeOpportunityRequirement> requirements = new List<TradeOpportunityRequirement>();
 
+            requirements.Add(GetExchangeTradeRequirement(this.LowerPricePair.Exchange));
+            requirements.AddRange(GetAccountRequirements("Lower-Price", this.LowerPricePair, this.LowerPricePair.TradePair.ToCurrency, out this.LowerAccount)); // We want to SELL ToCurrency from lower exchange
 
-#warning Implement
-            throw new NotImplementedException();
+            requirements.Add(GetExchangeTradeRequirement(this.HigherPricePair.Exchange));
+            requirements.AddRange(GetAccountRequirements("Higher-Price", this.HigherPricePair, this.HigherPricePair.TradePair.FromCurrency, out this.HigherAccount)); // We want to SELL FromCurrency from higher exchange
+
+            // Another requirement is that any one of the two currencies need to be the preferred cryptocurrency
+            bool requirement = this.LowerPricePair.TradePair.FromCurrency == SystemSetting.PreferredCyptoCurrency || this.LowerPricePair.TradePair.ToCurrency == SystemSetting.PreferredCyptoCurrency;
+            requirements.Add(new TradeOpportunityRequirement()
+            {
+                RequirementMet = requirement,
+                ItemIdentifier = $"Preferred CryptoCurrency Missing - {this.LowerPricePair.TradePair}", 
+                Message = requirement ? "" : $"The tradepair {this.LowerPricePair.TradePair} doesn't include the preferred crypto-currency {SystemSetting.PreferredCyptoCurrency}. This is currently unsupported.",
+                Timestamp = DateTime.UtcNow,
+                TradeOpportunityRequirementTypeId = TradeOpportunityRequirementType.RequirementTypes.Where(x => x.Code == "SUPPORT-CURR").Single().Id,
+
+            });
+
+            return requirements.ToArray();
         }
 
+        /// <summary>
+        /// Our aim is to improve the number of "preferred crypto-currency coins" (i.e. BTC at the time of writing). To do so, and be less exposed we need to sell as much as we can 
+        /// of the non-preferred currency and gain as much as we can of the preferred one.
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override decimal GetMaximumAmountThatCanBeTransacted()
+        {
+            //
+            int preferredIndex = this.LowerPricePair.TradePair.FromCurrency == SystemSetting.PreferredCyptoCurrency ? 0 : 1;
+
+            // Make sure both accounts exist. If not return 0m already. 
+            if (this.LowerAccount == null || this.HigherAccount == null) return 0m;
+
+            // 
+            var lowerExchangeAvailability = this.LowerAccount.Currency == SystemSetting.PreferredCyptoCurrency ? this.LowerAccount.Balance : (preferredIndex == 0 ? (this.LowerAccount.Balance / this.LowerPricePair.LatestPrice) : (this.LowerAccount.Balance * this.LowerPricePair.LatestPrice));
+            var higherExchangeAvailability = this.HigherAccount.Currency == SystemSetting.PreferredCyptoCurrency ? this.HigherAccount.Balance : (preferredIndex == 0 ? (this.HigherAccount.Balance / this.HigherPricePair.LatestPrice) : (this.HigherAccount.Balance * this.HigherPricePair.LatestPrice));
+
+            // The minimum of both is the maximum that can be transacted
+            return Math.Min(lowerExchangeAvailability, higherExchangeAvailability);
+        }
 
         public override ITradeAction GetTradeAction(decimal amount)
         {
@@ -89,22 +139,27 @@ namespace RBBot.Core.Engine.Trading.Arb
             {
                 ChildrenActions = new ITradeAction[]
                 {
-                    new ExchangeOrderAction(this.LowerPricePair.ExchangeTradePair, ExchangeOrderType.Buy, amount),
-                    new ExchangeOrderAction(this.HigherPricePair.ExchangeTradePair, ExchangeOrderType.Sell, amount)
-                }
+                    new ExchangeOrderAction(this.LowerPricePair, ExchangeOrderType.Buy, amount),
+                    new ExchangeOrderAction(this.HigherPricePair, ExchangeOrderType.Sell, amount)
+                },
+                ExecuteChildrenInParallel = true
             };
         }
 
-        public override decimal GetMaximumAmountThatCanBeTransacted()
+       
+
+        public override decimal GetValue()
         {
-            throw new NotImplementedException();
+            return ArbPriceManager.CalculateOpportunityMargin(this.LowerPricePair, this.HigherPricePair);
         }
 
-        internal ArbOpportunity(TradePairPrice lowerPricePair, TradePairPrice higherPricePair, Currency currency)
+        internal ArbOpportunity(ExchangeTradePair lowerPricePair, ExchangeTradePair higherPricePair)
         {
             this.LowerPricePair = lowerPricePair;
             this.HigherPricePair = higherPricePair;
-            this.OpportunityBaseCurrency = currency;
+
+            // The opportunity's base currency is always the preferred cryptocurrency. 
+            this.OpportunityBaseCurrency = SystemSetting.PreferredCyptoCurrency;
 
         }
 

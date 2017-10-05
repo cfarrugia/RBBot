@@ -3,7 +3,6 @@ using RBBot.Core.Exchanges;
 using RBBot.Core.Exchanges.Bitflyer;
 using RBBot.Core.Exchanges.CryptoCompare;
 using RBBot.Core.Exchanges.GDAX;
-using RBBot.Core.Exchanges.OKCoin;
 using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -21,8 +20,6 @@ namespace RBBot.Core.Engine
     public static class DataProcessingEngine
     {
 
-        private readonly static Dictionary<Exchange, IExchangeTrader> TradeExchangeDictionary; 
-
         public static async Task<IExchange[]> InitializeEngine(IMarketPriceProcessor[] priceObservers)
         {
 
@@ -39,6 +36,7 @@ namespace RBBot.Core.Engine
                 exchangeModels = ctx.Exchanges
                     .Include(x => x.ExchangeState)
                     .Include(x => x.Settings)
+                    .Include(x => x.TradeAccounts)
                     .Include(x => x.ExchangeTradePairs.Select(y => y.ExchangeTradePairState))
                     .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.FromCurrency))
                     .Include(x => x.ExchangeTradePairs.Select(y => y.TradePair).Select(z => z.ToCurrency))
@@ -47,6 +45,7 @@ namespace RBBot.Core.Engine
 
                 // Get / cache the settings. 
                 settings = ctx.Settings.ToList();
+
 
                 // Now since I'm lazy, i first put setting unencrypted in db, and then encrypt them here. 
                 if (settings.Where(x => x.IsEncrypted == false && x.ShouldBeEncrypted == true).Any(x => { x.EncryptSetting(); return true; }))
@@ -61,14 +60,27 @@ namespace RBBot.Core.Engine
                 var ccExchanges = exchangeModels.Where(x => ccExchangeIds.Contains(x.Id)).ToList();
 
                 integrations = new List<Exchanges.IExchange>();
-                integrations.Add(new CryptoCompareIntegration(priceObservers, ccExchanges.ToArray()));
-                integrations.Add(new BitflyerIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
-                integrations.Add(new GDAXIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
+                integrations.Add(new CryptoCompareIntegration(ccExchanges.ToArray()));
+                integrations.Add(new BitflyerIntegration(new[] { exchangeModels.Single(x => x.Name == "Bitflyer") }));
+                integrations.Add(new GDAXIntegration(new[] { exchangeModels.Single(x => x.Name == "GDAX") }));
                 //integrations.Add(new OKCoinComIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.com") }));
                 //integrations.Add(new OKCoinCNIntegration(priceObservers, new[] { exchangeModels.Single(x => x.Name == "OKCoin.cn") }));
                 
                 integrations.Add(new PoloniexIntegration(exchangeModels.Single(x => x.Name == "Poloniex")));
                 integrations.Add(new KrakenIntegration(exchangeModels.Single(x => x.Name == "Kraken")));
+
+
+
+                // Cache other lookups
+                TradeOpportunityRequirementType.RequirementTypes = ctx.TradeOpportunityRequirementTypes.ToArray();
+                TradeOpportunityState.States = ctx.TradeOpportunityStates.ToArray();
+                TradeOpportunityType.Types = ctx.TradeOpportunityTypes.ToArray();
+
+                // Initialize the price cache;
+                TradePriceIndex.Initialize(exchangeModels.ToArray(), ctx.TradePairs.ToArray());
+
+                // Initialize system settings.
+                SystemSetting.LoadSystemSettings(ctx);
 
 
                 // Synchronize all the trading accounts.

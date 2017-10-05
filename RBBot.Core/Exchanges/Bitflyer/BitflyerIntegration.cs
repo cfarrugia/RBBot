@@ -11,7 +11,7 @@ namespace RBBot.Core.Exchanges.Bitflyer
 {
     public class BitflyerIntegration : ExchangeIntegration
     {
-        public BitflyerIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
+        public BitflyerIntegration(Exchange[] exchanges) : base(exchanges)
         {
         }
 
@@ -47,13 +47,7 @@ namespace RBBot.Core.Exchanges.Bitflyer
                         DateTime utcTime = dynObj[0].timestamp.Value;
                         double lasttradeprice = dynObj[0].ltp.Value;
 
-                        Task.Run(() => this.NotifyObserverOfPriceChange(new PriceChangeEvent()
-                        {
-                            ExchangeTradePair = product.Value,
-                            Price = (decimal)lasttradeprice,
-                            UtcTime = utcTime
-                        }));
-
+                        Task.Run(() => this.NotifyObserverOfPriceChange(product.Value, (decimal)lasttradeprice, utcTime));
                     }
                     catch (Exception ex)
                     {

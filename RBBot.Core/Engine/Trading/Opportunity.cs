@@ -18,9 +18,7 @@ namespace RBBot.Core.Engine.Trading
         /// This is the current value as a percentage of the base trade currency of this opportunity.
         /// This amount already excludes any fees involved in doing the arb. 
         /// </summary>
-        public decimal CurrentValue { get; private set; }
-
-
+        public abstract decimal GetValue();
 
         /// <summary>
         /// This is the opportunity model object used in the db to track the opportunity changes.
@@ -32,15 +30,17 @@ namespace RBBot.Core.Engine.Trading
         /// </summary>
         public Currency OpportunityBaseCurrency { get; set; }
 
+
         public abstract string TypeCode { get; }
-        
+
+        public abstract string UniqueIdentifier { get; }
+
         /// <summary>
         /// This method should get the requirements needed for executing this ARB and check if the requirements are met.
         /// Persistence to DB its not the job of this method.
         /// </summary>
         /// <returns></returns>
-        public abstract Task<TradeOpportunityRequirement[]> GetAndCheckRequirements();
-
+        public abstract TradeOpportunityRequirement[] GetAndCheckRequirements();
 
         /// <summary>
         /// Gets the maximum amount that could be transacted. This is linked to the amount available in the 
@@ -48,163 +48,151 @@ namespace RBBot.Core.Engine.Trading
         /// </summary>
         public abstract decimal GetMaximumAmountThatCanBeTransacted();
 
+        public bool RequirementsMet { get; protected set; }
+
+        public decimal MaximumPossibleTransactionAmount { get; protected set; }
+
         /// <summary>
         /// This method will be used to return the root trade action to be executed for an opportunity. 
         /// </summary>
         public abstract ITradeAction GetTradeAction(decimal amount);
-        
-        private async Task<bool> GetCheckAndPersistRequirements(RBBotContext dbCtx)
+
+        public override string ToString()
         {
-            var requirements = await this.GetAndCheckRequirements();
-
-            var checksOk = !requirements.Any(x => x.RequirementMet == false);
-
-            dbCtx.TradeOpportunityRequirements.AddRange(requirements);
-
-            await dbCtx.SaveChangesAsync();
-
-            return checksOk;
+            return this.UniqueIdentifier;
         }
 
-        /// <summary>
-        /// This method is used to actually execute the opportunity
-        /// </summary>
-        /// <param name="simulate"></param>
-        public async Task<bool> ExecuteOpportunity(decimal transactionAmount, bool simulate = true)
+        public TradeOpportunityRequirement[] UpdateRequirementsAndAmount()
         {
-            // Before executing, we do one last requirements check. 
-            using (var ctx = new RBBotContext())
-            {
-                var checksPassed = await this.GetCheckAndPersistRequirements(ctx);
-                List<TradeOpportunityTransaction> transactions = new List<TradeOpportunityTransaction>();
-
-                // This anonymous function executes the action and waits for all children. 
-                Func<ITradeAction, Task> executeNode = null;
-                executeNode = async (action) => 
-                   {
-                       
-
-                       // If to be executed before children...
-                       if (action.ExecuteBeforeChildren)
-                       {
-                           var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
-                           if (tx != null) transactions.Add(tx);
-                       }
-
-
-                       // Loop through the children.
-                       foreach (var child in action.ChildrenActions)
-                       {
-                           // If children to be executed asynchronously...
-                           if (action.ExecuteChildrenInParallel)
-                               await executeNode(child);
-                           else
-                               Task.Run(() => executeNode).Wait();
-                       }
-                       
-                       // If to be executed afterchildren...
-                       if (!action.ExecuteBeforeChildren)
-                       {
-                           var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
-                           if (tx != null) transactions.Add(tx);
-                       }
-
-                   };
-
-
-                var executionOk = checksPassed;
-
-                // If the checks have passed, then execute all actions!
-                if (checksPassed)
-                {
-                    try
-                    {
-                        await executeNode(this.GetTradeAction(transactionAmount));
-                    }
-                    catch (Exception ex)
-                    {
-                        // 
-                        executionOk = false;
-#warning make sure you capture the exception properly.
-                    }
-                }
-
-                // Save all the transaction actions to database.
-                ctx.TradeOpportunityTransactions.AddRange(transactions);
-                this.OpportunityModel.IsExecuted = true;
-                this.OpportunityModel.EndTime = DateTime.UtcNow;
-                await ctx.SaveChangesAsync();
-
-                //
-                return executionOk;
-            }
+            var requirements = GetAndCheckRequirements();
+            this.MaximumPossibleTransactionAmount = this.GetMaximumAmountThatCanBeTransacted();
+            this.RequirementsMet = requirements.All(x => x.RequirementMet);
+            return requirements;
         }
 
 
-        internal async Task UpdateOpportunity(decimal newMarginValue)
+        //        /// <summary>
+        //        /// This method is used to actually execute the opportunity
+        //        /// </summary>
+        //        /// <param name="simulate"></param>
+        //        public async Task<bool> ExecuteOpportunity(decimal transactionAmount, bool simulate = true)
+        //        {
+        //            // Before executing, we do one last requirements check. 
+        //            using (var ctx = new RBBotContext())
+        //            {
+        //                var checksPassed = await this.GetCheckAndPersistRequirements(ctx);
+        //                List<TradeOpportunityTransaction> transactions = new List<TradeOpportunityTransaction>();
+
+        //                // This anonymous function executes the action and waits for all children. 
+        //                Func<ITradeAction, Task> executeNode = null;
+        //                executeNode = async (action) => 
+        //                   {
+
+
+        //                       // If to be executed before children...
+        //                       if (action.ExecuteBeforeChildren)
+        //                       {
+        //                           var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
+        //                           if (tx != null) transactions.Add(tx);
+        //                       }
+
+
+        //                       // Loop through the children.
+        //                       foreach (var child in action.ChildrenActions)
+        //                       {
+        //                           // If children to be executed asynchronously...
+        //                           if (action.ExecuteChildrenInParallel)
+        //                               await executeNode(child);
+        //                           else
+        //                               Task.Run(() => executeNode).Wait();
+        //                       }
+
+        //                       // If to be executed afterchildren...
+        //                       if (!action.ExecuteBeforeChildren)
+        //                       {
+        //                           var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
+        //                           if (tx != null) transactions.Add(tx);
+        //                       }
+
+        //                   };
+
+
+        //                var executionOk = checksPassed;
+
+        //                // If the checks have passed, then execute all actions!
+        //                if (checksPassed)
+        //                {
+        //                    try
+        //                    {
+        //                        await executeNode(this.GetTradeAction(transactionAmount));
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        // 
+        //                        executionOk = false;
+        //#warning make sure you capture the exception properly.
+        //                    }
+        //                }
+
+        //                // Save all the transaction actions to database.
+        //                ctx.TradeOpportunityTransactions.AddRange(transactions);
+        //                this.OpportunityModel.IsExecuted = true;
+        //                this.OpportunityModel.EndTime = DateTime.UtcNow;
+        //                await ctx.SaveChangesAsync();
+
+        //                //
+        //                return executionOk;
+        //            }
+        //        }
+
+        #region Opportunity Helpers
+
+
+        protected static TradeOpportunityRequirement GetExchangeTradeRequirement(Exchange exchange)
         {
-            this.CurrentValue = newMarginValue;
-
-            // the opportunity is only considered started on first non-zero value!
-            if (newMarginValue == 0m) return;
-
-            using (var ctx = new RBBotContext())
+            return new TradeOpportunityRequirement()
             {
-                if (this.OpportunityModel == null)
+                RequirementMet = (exchange.TradingIntegration) != null,
+                ItemIdentifier = $"EXCHANGE - {exchange}",
+                Message = (exchange.TradingIntegration) == null ? "The trading part of the exchange is not implemented" : "",
+                Timestamp = DateTime.UtcNow,
+                TradeOpportunityRequirementTypeId = TradeOpportunityRequirementType.RequirementTypes.Where(x => x.Code == "EXC-TRD-INT").Single().Id,
+            };
+        }
+
+        protected static List<TradeOpportunityRequirement> GetAccountRequirements(string requirementPrefix, ExchangeTradePair tradePair, Currency currency, out TradeAccount account)
+        {
+
+            account = tradePair.Exchange.TradeAccounts.Where(x => x.Currency == currency).SingleOrDefault();
+
+            var reqs = new List<TradeOpportunityRequirement>();
+
+            reqs.Add(new TradeOpportunityRequirement()
+            {
+                RequirementMet = account != null,
+                ItemIdentifier = $"{requirementPrefix} Account - {currency.Code}",
+                Message = account == null ? $"Account in {currency.Code} doesn't exists on {tradePair.Exchange}" : "",
+                Timestamp = DateTime.UtcNow,
+                TradeOpportunityRequirementTypeId = TradeOpportunityRequirementType.RequirementTypes.Where(x => x.Code == "EXC-ACC-EXIST").Single().Id,
+            });
+
+            // if the first requirement is met, then proceed to the second one.
+            if (reqs.First().RequirementMet)
+            {
+                reqs.Add(new TradeOpportunityRequirement()
                 {
-
-                    this.OpportunityModel = new TradeOpportunity()
-                    {
-                        CurrencyId = this.OpportunityBaseCurrency.Id,
-                        StartTime = DateTime.UtcNow,
-                        IsExecuted = false,
-                        TradeOpportunityTypeId = ctx.TradeOpportunityTypes.Single(x => x.Code == this.TypeCode).Id
-                    };
-
-
-                    lock (this.OpportunityModel)
-                    {
-                        // Add it to the context.
-                        ctx.TradeOpportunities.Add(this.OpportunityModel);
-                        ctx.SaveChanges(); // Don't execute this async so we avoid having the children created before the parent!
-                    }
-                }
-               
-                var newTradeValue = new TradeOpportunityValue()
-                {
-                    PotentialMargin = newMarginValue,
+                    RequirementMet = account.Balance > 0m,
+                    ItemIdentifier = $"{requirementPrefix} Account - {currency.Code}",
+                    Message = account.Balance <= 0m ? $"Account in {currency.Code} has zero balance on {tradePair.Exchange}" : "",
                     Timestamp = DateTime.UtcNow,
-                    TradeOpportunityId = this.OpportunityModel.Id
-                };
-
-                
-                ctx.TradeOpportunityValues.Add(newTradeValue);
-                //this.OpportunityModel.TradeOpportunityValues.Add(newTradeValue);
-                //ctx.Entry(this.OpportunityModel).State = System.Data.Entity.EntityState.Modified;
-                //ctx.TradeOpportunityValues.Add(newTradeValue);
-
-                try
-                {
-                    await ctx.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-
-                    Console.WriteLine("Error saving opportunity to database: ", ex.ToString());
-
-                }
-                
-
-                // async save to db and return
-                //await ctx.SaveChangesAsync();
-
-                // 
-                await OpportunityScoreEngine.UpdateOpportunityValue(this);
+                    TradeOpportunityRequirementTypeId = TradeOpportunityRequirementType.RequirementTypes.Where(x => x.Code == "EXC-ACC-BAL").Single().Id,
+                });
             }
 
-
-
+            return reqs;
         }
+
+        #endregion
 
     }
 }

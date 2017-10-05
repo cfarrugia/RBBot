@@ -1,5 +1,6 @@
 ﻿using RBBot.Core.Engine;
 using RBBot.Core.Engine.Trading;
+using RBBot.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace RBBot.Core.Exchanges
         /// <summary>
         /// Event generates when a price changes
         /// </summary>
-        event Action<PriceChangeEvent> OnPriceChangeHandler;
+        event Action<ExchangeTradePair> OnPriceChangeHandler;
 
         /// <summary>
         /// Initialization method for the integration.

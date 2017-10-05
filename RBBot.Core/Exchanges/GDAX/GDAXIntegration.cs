@@ -31,7 +31,7 @@ namespace RBBot.Core.Exchanges.GDAX
 
         private GdaxClient gdaxClient = null;
 
-        public GDAXIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchanges) : base(priceObservers, exchanges)
+        public GDAXIntegration(Exchange[] exchanges) : base(exchanges)
         {
             this.Exchange = exchanges[0];
             GdaxAuthenticator auth = new GdaxAuthenticator(this.Exchange.GetSetting("ApiKey"), this.Exchange.GetSetting("ApiPassPhrase"), this.Exchange.GetSetting("ApiSecret"));
@@ -69,18 +69,13 @@ namespace RBBot.Core.Exchanges.GDAX
                 {
                     var jsonObj = JsonConvert.DeserializeObject<GDAXTradeMatchJson>(result);
 
-
-
-                    PriceChangeEvent priceChange = new PriceChangeEvent()
-                    {
-                        Price = jsonObj.price,
-                        UtcTime = DateTime.Parse(jsonObj.time).ToUniversalTime(),
-                        ExchangeTradePair = this.GetExchangeTradePair(this.tradingPairs.Values.First().Exchange.Name, jsonObj.product_id.Split('-')[0], jsonObj.product_id.Split('-')[1])
-
-                    };
-
                     // Notify the observers!
-                    await this.NotifyObserverOfPriceChange(priceChange);
+                    await this.NotifyObserverOfPriceChange
+                        (
+                            this.GetExchangeTradePair(this.tradingPairs.Values.First().Exchange.Name, jsonObj.product_id.Split('-')[0], jsonObj.product_id.Split('-')[1]),
+                            jsonObj.price,
+                            DateTime.Parse(jsonObj.time).ToUniversalTime()
+                        );
                 }
             }
             catch (Exception ex)

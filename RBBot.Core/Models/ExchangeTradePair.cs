@@ -62,5 +62,11 @@ namespace RBBot.Core.Models
         /// </summary>
         [NotMapped]
         public decimal LatestPrice { get; set; }
+
+        /// <summary>
+        /// This is not mapped to DB. This is the last date the price was modified at.
+        /// </summary>
+        [NotMapped]
+        public DateTime LatestUpdate { get; set; }
     }
 }

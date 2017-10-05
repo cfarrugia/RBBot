@@ -15,14 +15,8 @@ namespace RBBot.Core.Exchanges
         /// </summary>
         /// <param name="priceObservers">The list of price observers</param>
         /// <param name="exchange">The full exchange db object (with all children items included).</param>
-        public ExchangeIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] exchanges)
+        public ExchangeIntegration(Exchange[] exchanges)
         {
-            //
-            this.PriceObservers = priceObservers;
-
-            //
-            this.PriceObservers = priceObservers;
-
             tradingPairs = new Dictionary<string, Models.ExchangeTradePair>();
 
             foreach (var exchange in exchanges)
@@ -40,29 +34,23 @@ namespace RBBot.Core.Exchanges
 
         public abstract string Name { get; }
 
-        public IEnumerable<IMarketPriceProcessor> PriceObservers { get; set; }
-
-        public event Action<PriceChangeEvent> OnPriceChangeHandler;
+        public event Action<ExchangeTradePair> OnPriceChangeHandler;
 
         public abstract Task InitializeExchangePriceProcessingAsync();
 
         public abstract Task ShutdownExchangePriceProcessingDownAsync();
 
 
-        protected async Task NotifyObserverOfPriceChange(PriceChangeEvent priceEvent)
+        protected async Task NotifyObserverOfPriceChange(ExchangeTradePair changedPair, decimal newPrice, DateTime updateTime)
         {
-            
+
             // Get the trade pair and update its price.
-            priceEvent.ExchangeTradePair.LatestPrice = priceEvent.Price;
+            changedPair.LatestPrice = newPrice;
+            changedPair.LatestUpdate = updateTime;
 
             // If somebody registered to the pricechange event, then call it.
-            if (this.OnPriceChangeHandler != null) this.OnPriceChangeHandler(priceEvent);
+            if (this.OnPriceChangeHandler != null) this.OnPriceChangeHandler(changedPair);
 
-            //// Loop through the observers and signal change.
-            //foreach (var observer in this.PriceObservers)
-            //{
-            //    await observer.OnMarketPriceChangeAsync(priceEvent);
-            //}
 
         }
 

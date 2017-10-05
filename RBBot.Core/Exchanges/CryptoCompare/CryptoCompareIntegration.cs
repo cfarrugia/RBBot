@@ -11,7 +11,7 @@ namespace RBBot.Core.Exchanges.CryptoCompare
 {
     public class CryptoCompareIntegration : ExchangeIntegration
     {
-        public CryptoCompareIntegration(IMarketPriceProcessor[] priceObservers, Exchange[] ccExchanges) : base(priceObservers, ccExchanges)
+        public CryptoCompareIntegration(Exchange[] ccExchanges) : base(ccExchanges)
         {
             
         }
@@ -68,13 +68,7 @@ namespace RBBot.Core.Exchanges.CryptoCompare
                         decimal price = Convert.ToDecimal(splitMessage[5]);
                         DateTime lastUpdate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(splitMessage[6])).UtcDateTime; // It appears they use unix time. ;
 
-                        await this.NotifyObserverOfPriceChange(new PriceChangeEvent()
-                        {
-
-                            ExchangeTradePair = this.tradingPairs[GetPairKey(exchange, fromCurrency, toCurrency)],
-                            Price = price,
-                            UtcTime = lastUpdate
-                        });
+                        await this.NotifyObserverOfPriceChange(this.tradingPairs[GetPairKey(exchange, fromCurrency, toCurrency)], price, lastUpdate);
                     }
                 }
                 catch (Exception ex)

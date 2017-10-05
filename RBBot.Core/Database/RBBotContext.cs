@@ -28,6 +28,7 @@ namespace RBBot.Core.Database
         public virtual DbSet<TradeOpportunityRequirementType> TradeOpportunityRequirementTypes { get; set; }
         public virtual DbSet<TradeOpportunityRequirement> TradeOpportunityRequirements { get; set; }
         public virtual DbSet<TradeOpportunityType> TradeOpportunityTypes { get; set; }
+        public virtual DbSet<TradeOpportunityState> TradeOpportunityStates { get; set; }
         public virtual DbSet<TradePair> TradePairs { get; set; }
         public virtual DbSet<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
 
@@ -159,6 +160,15 @@ namespace RBBot.Core.Database
                 .IsUnicode(false);
 
             modelBuilder.Entity<TradeOpportunityType>()
+                .Property(e => e.Description)
+                .IsUnicode(false);
+
+
+            modelBuilder.Entity<TradeOpportunityState>()
+                .Property(e => e.Code)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<TradeOpportunityState>()
                 .Property(e => e.Description)
                 .IsUnicode(false);
 

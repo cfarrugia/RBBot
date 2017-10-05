@@ -236,20 +236,21 @@
       <HintPath>..\packages\WampSharp.1.2.6.41-beta\lib\net45\WampSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\TradePriceIndex.cs" />
     <Compile Include="Engine\Trading\Actions\CurrencyTransfer.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderAction.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderResponse.cs" />
     <Compile Include="Engine\Trading\Actions\ExchangeOrderType.cs" />
     <Compile Include="Engine\Trading\NullAction.cs" />
     <Compile Include="Engine\Trading\OpportunityRequirement.cs" />
-    <Compile Include="Engine\Trading\TradePairPrice.cs" />
     <Compile Include="Engine\Trading\TransactionFee.cs" />
     <Compile Include="Engine\Trading\Triangulation\CycleFinder.cs" />
     <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulation.cs" />
     <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulationEdge.cs" />
-    <Compile Include="Engine\Trading\Triangulation\TriangularationOpportunity.cs" />
+    <Compile Include="Engine\Trading\Triangulation\TriangulationOpportunity.cs" />
     <Compile Include="Engine\Trading\Triangulation\TriangulationManager.cs" />
     <Compile Include="Engine\Trading\Arb\ArbOpportunity.cs" />
     <Compile Include="Exchanges\ExchangeBalance.cs" />
@@ -300,6 +301,7 @@
     <Compile Include="Exchanges\Poloniex\Wallet\Withdrawal.cs" />
     <Compile Include="Helpers\ConcurrentHashSet.cs" />
     <Compile Include="Helpers\SettingHelper.cs" />
+    <Compile Include="Helpers\SystemSetting.cs" />
     <Compile Include="Helpers\TarjanCycleDetectStack.cs" />
     <Compile Include="Helpers\Vertex.cs" />
     <Compile Include="Models\Currency.cs" />
@@ -313,6 +315,7 @@
     <Compile Include="Database\RBBotContext.cs" />
     <Compile Include="Models\TradeAccount.cs" />
     <Compile Include="Models\TradeOpportunityRequirement.cs" />
+    <Compile Include="Models\TradeOpportunityState.cs" />
     <Compile Include="Models\TradeOpportunityValue.cs" />
     <Compile Include="Models\TradeOpportunity.cs" />
     <Compile Include="Models\TradeOpportunityTransaction.cs" />
@@ -328,8 +331,6 @@
     <Compile Include="Engine\Trading\IMarketPriceProcessor.cs" />
     <Compile Include="Engine\Trading\Recorder\MarketPriceRecorder.cs" />
     <Compile Include="Engine\Trading\Arb\ArbPriceManager.cs" />
-    <Compile Include="Engine\Trading\Arb\ArbTradePairSpread.cs" />
-    <Compile Include="Engine\PriceChangeEvent.cs" />
     <Compile Include="Engine\OpportunityScoreEngine.cs" />
     <Compile Include="Engine\Trading\Opportunity.cs" />
     <Compile Include="Engine\Trading\ITradeAction.cs" />
@@ -340,11 +341,6 @@
     <Compile Include="Exchanges\GDAX\GDAXIntegration.cs" />
     <Compile Include="Exchanges\GDAX\GDAXTradeMatchJson.cs" />
     <Compile Include="Exchanges\IExchangePriceReader.cs" />
-    <Compile Include="Exchanges\OKCoin\OKCoinCNIntegration.cs" />
-    <Compile Include="Exchanges\OKCoin\OKCoinComIntegration.cs" />
-    <Compile Include="Exchanges\OKCoin\OKCoinIntegration.cs" />
-    <Compile Include="Exchanges\OKCoin\OKExIntegration.cs" />
-    <Compile Include="Exchanges\OKCoin\WebSocketBasecs.cs" />
     <Compile Include="Exchanges\Poloniex\PoloniexIntegration.cs" />
     <Compile Include="Helpers\WebSocketManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

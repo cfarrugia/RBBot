@@ -16,17 +16,17 @@ namespace RBBot.Core.Models
 
         public int Id { get; set; }
 
-        public int TypeId { get; set; }
-
         public DateTime Timestamp { get; set; }
 
-        public int TradeOpportunityTypeId { get; set; }
+        public int TradeOpportunityRequirementTypeId { get; set; }
+
+        public string ItemIdentifier { get; set; }
 
         public string Message { get; set; }
 
         public bool RequirementMet { get; set; }
 
-        public TradeOpportunityRequirementType Type { get; set; }
+        public TradeOpportunityRequirementType TradeOpportunityRequirementType { get; set; }
         public TradeOpportunity TradeOpportunity { get; set; }
         public int TradeOpportunityId { get; set; }
 

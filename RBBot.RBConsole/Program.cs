@@ -17,25 +17,29 @@ using System.Reactive;
 using System.Reactive.Linq;
 using RBBot.Core.Exchanges;
 using System.Reactive.Subjects;
+using System.Threading;
+using System.Reactive.Concurrency;
+using System.Reactive.PlatformServices;
 
 namespace RBBot.RBConsole
 {
 
-
     public class Program
     {
 
-        public static async IObservable<Opportunity> GetOpportunityObservable(IExchange[] exchangeIntegrations, IMarketPriceProcessor[] priceProcessors)
+        public static IObservable<Opportunity> GetOpportunityObservable(IExchange[] exchangeIntegrations, IMarketPriceProcessor[] priceProcessors)
         {
+            IScheduler s = System.Reactive.Concurrency.ThreadPoolScheduler.Instance;
+
             // Get all price observablea.
-            List<IObservable<PriceChangeEvent>> priceChangers =
+            List<IObservable<ExchangeTradePair>> priceChangers =
             exchangeIntegrations.Where(x => x is IExchangePriceReader)
             .Select(x => x as IExchangePriceReader)
-            .Select(x => Observable.FromEvent<PriceChangeEvent>(y => x.OnPriceChangeHandler += y, y => x.OnPriceChangeHandler -= y))
+            .Select(x => Observable.FromEvent<ExchangeTradePair>(y => x.OnPriceChangeHandler += y, y => x.OnPriceChangeHandler -= y).ObserveOn(s))
             .ToList();
 
             // Merge all observers together into one stream.
-            var priceChangeObserver = Observable.Empty<PriceChangeEvent>();
+            var priceChangeObserver = Observable.Empty<ExchangeTradePair>();
             priceChangers.ForEach(x => priceChangeObserver = priceChangeObserver.Merge(x));
 
 
@@ -48,15 +52,11 @@ namespace RBBot.RBConsole
                 select oo;
 
             // Return the observable of opportunities. Filter out null opportunities.
-            return opportunityObserver;
+            return opportunityObserver;//.Where(x => x.GetValue() > 0m);
         }
-
-
 
         public static void Main(string[] args)
         {
-
-            
 
             try
             {
@@ -69,26 +69,40 @@ namespace RBBot.RBConsole
                     priceProcessors.Add(TriangulationManager.Instance);
 
                     // Initialize the data processing engine. This returns the integrations and start the integrations engines to spit out prices.
-                    var integrations = await RBBot.Core.Engine.DataProcessingEngine.InitializeEngine(priceProcessors.ToArray());
+                    OpportunityScoreEngine.InitializeEngine();
+
+                    var integrations = await DataProcessingEngine.InitializeEngine(priceProcessors.ToArray());
+
 
                     // From the integrations and price processors we get a stream of opportunities.
-                    IObservable<Opportunity> opportunityStream = GetOpportunityObservable(integrations, priceProcessors.ToArray());
+                    // Then get a stream of trade opportunities. 
+                    IObservable<TradeOpportunity> tradeableStream =
+                        GetOpportunityObservable(integrations, priceProcessors.ToArray())
+                        .GetTradeOpportunityStream();
+                    //.Where(x => x.LatestOpportunity.RequirementsMet && x.LatestOpportunity.MaximumPossibleTransactionAmount > 0m); 
 
-                    // These opportunities are stateless 
-
-                    //var sub = priceChangeObserver.Subscribe((np) => { Console.WriteLine($"new price from {np.ExchangeTradePair.Exchange} for {np.ExchangeTradePair.TradePair} is {np.Price:0.0000}"); });
-
-                    var sub = opportunityStream.Subscribe((opp) => { Console.WriteLine($"new opportunity!"); }, (err) => { Console.WriteLine($"err: {err.Message}"); } );
+                    //
+                    IScheduler s = System.Reactive.Concurrency.ThreadPoolScheduler.Instance;
 
 
-                    // Initialize the opportunity scoring engine.
-                    //await RBBot.Core.Engine.OpportunityScoreEngine.InitializeEngine();
+                    var sub = tradeableStream.SubscribeOn(s).Subscribe(
+                        (opp) => 
+                        {
+                            var state = TradeOpportunityState.States.Where(x => x.Id == opp.TradeOpportunityStateId).Single().Code;
+                            var type = TradeOpportunityType.Types.Where(x => x.Id == opp.TradeOpportunityTypeId).Single().Code;
 
-                    // Initialize the trading engine.
+                            Console.WriteLine($"Opp: {type} | {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetValue():0.00}");
+                        }, 
+                        (err) => 
+                        {
+                            Console.WriteLine($"err: {err.ToString()}");
+                        } 
+                    );
+                    
 
                 }).GetAwaiter().GetResult();
 
-
+                Console.WriteLine("Press any key to exit");
                 Console.ReadLine();
 
             }
@@ -97,7 +111,6 @@ namespace RBBot.RBConsole
                 Console.WriteLine(ex);
             }
 
-            Console.ReadLine();
 
         }
     }

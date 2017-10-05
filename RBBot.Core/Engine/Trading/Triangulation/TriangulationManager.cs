@@ -51,22 +51,18 @@ namespace RBBot.Core.Engine.Trading.Triangulation
         /// </summary>
         private ConcurrentDictionary<Exchange, ExchangeTriangulation[]> tradePairCycles = new ConcurrentDictionary<Exchange, ExchangeTriangulation[]>();
 
-        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(PriceChangeEvent change)
+        public async Task<IEnumerable<Opportunity>> OnMarketPriceChangeAsync(ExchangeTradePair change)
         {
             // First time we receive a price, we generate 
-            ExchangeTriangulation[] triangulations = this.tradePairCycles.GetOrAdd(change.ExchangeTradePair.Exchange, GetTriangulationsForExchange(change.ExchangeTradePair.Exchange));
+            ExchangeTriangulation[] triangulations = this.tradePairCycles.GetOrAdd(change.Exchange, GetTriangulationsForExchange(change.Exchange));
 
             // 
             List<Opportunity> opportunities = new List<Opportunity>();
 
             foreach (var tria in triangulations)
             {
-                var opporunity = (tria.UpdatePriceAndGetValue(change) - 1m);
-                if (opporunity > 0.0025m) // More than .3% of opportunity
-                {
-                    Console.WriteLine($"Found a triangulation opportunity on {change.ExchangeTradePair.Exchange} of {opporunity:0.00%} for cycle: {tria}");
-                    opportunities.Add(new TriangularationOpportunity(tria));
-                }
+                var opporunity = (tria.GetValue() - 1m);
+                opportunities.Add(new TriangulationOpportunity(tria));
             }
 
             // return all opportunities
@@ -97,13 +93,13 @@ namespace RBBot.Core.Engine.Trading.Triangulation
                         var forwardPair = exchange.ExchangeTradePairs.SingleOrDefault(x => x.TradePair.FromCurrency.Id == fromCurrency.Id && x.TradePair.ToCurrency.Id == toCurrency.Id);
                         if (forwardPair != null)
                         {
-                            triad.Edges.Add(new ExchangeTriangulationEdge() { IsReversed = false, CurrentPrice = new TradePairPrice() { ExchangeTradePair = forwardPair } });
+                            triad.Edges.Add(new ExchangeTriangulationEdge() { IsReversed = false, CurrentPrice = forwardPair });
                         }
                         else
                         {
 
                             var backwardPaid = exchange.ExchangeTradePairs.Single(x => x.TradePair.FromCurrency.Id == toCurrency.Id && x.TradePair.ToCurrency.Id == fromCurrency.Id);
-                            triad.Edges.Add(new ExchangeTriangulationEdge() { IsReversed = true, CurrentPrice = new TradePairPrice() { ExchangeTradePair = backwardPaid } });
+                            triad.Edges.Add(new ExchangeTriangulationEdge() { IsReversed = true, CurrentPrice = backwardPaid });
                         }
                     }
                     catch (Exception ex)

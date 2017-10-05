@@ -1,5 +1,6 @@
 namespace RBBot.Core.Models
 {
+    using Engine.Trading;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -13,7 +14,7 @@ namespace RBBot.Core.Models
         public TradeOpportunity()
         {
             TradeOpportunityTransactions = new HashSet<TradeOpportunityTransaction>();
-            //TradeOpportunityValues = new HashSet<TradeOpportunityValue>();
+            TradeOpportunityRequirements = new HashSet<TradeOpportunityRequirement>();
         }
 
         public int Id { get; set; }
@@ -31,13 +32,30 @@ namespace RBBot.Core.Models
 
         public DateTime? ExecutedTime { get; set; }
 
+        public int TradeOpportunityStateId { get; set; }
+
         public virtual TradeOpportunityType TradeOpportunityType { get; set; }
+
+        public virtual TradeOpportunityState TradeOpportunityState { get; set; }
+
+        public virtual string Description { get; set; }
 
         public virtual Currency Currency{ get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TradeOpportunityRequirement> TradeOpportunityRequirements { get; set; }
 
+        /// <summary>
+        /// This is a non-mapped property storing the latest opportunity object.
+        /// </summary>
+        [NotMapped]
+        public Opportunity LatestOpportunity { get; set; }
+
+        [NotMapped]
+        public DateTime LastestUpdate { get; set; }
+        
     }
 }
