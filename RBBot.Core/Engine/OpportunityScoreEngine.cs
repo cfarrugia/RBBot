@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,7 +64,7 @@ namespace RBBot.Core.Engine
             return tradeStream;
         }
 
-        public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState)
+        public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState, TradeOpportunityValue finalOpportunityValue = null)
         {
             // Try removing the opportunity from the dictionary.
             TradeOpportunity time = null;
@@ -71,6 +72,10 @@ namespace RBBot.Core.Engine
 
             if (removedSuccess == false) // If the opportunity couldn't be removed, then return. 
                 return;
+
+            opportunity.TradeOpportunityState = finalState;
+            opportunity.TradeOpportunityStateId = finalState.Id;
+            opportunity.EndTime = DateTime.UtcNow;
 
             // Call expired event.
             if (OnOpportunityExpired != null) OnOpportunityExpired(opportunity);
@@ -82,8 +87,12 @@ namespace RBBot.Core.Engine
             // Persist to db
             using (var ctx = new RBBotContext())
             {
-                opportunity.EndTime = DateTime.UtcNow;
-                opportunity.TradeOpportunityStateId = finalState.Id;
+                // If a final value is specified, add it now.
+                if (finalOpportunityValue != null)
+                {
+                    finalOpportunityValue.TradeOpportunityId = opportunity.Id;
+                    ctx.TradeOpportunityValues.Add(finalOpportunityValue);
+                }
 
                 ctx.TradeOpportunities.Attach(opportunity);
                 ctx.Entry(opportunity).State = System.Data.Entity.EntityState.Modified;
@@ -102,6 +111,14 @@ namespace RBBot.Core.Engine
 
             decimal oppValue = opportunity.GetValue();
 
+            // Create the trade value;
+            var newTradeValue = new TradeOpportunityValue()
+            {
+                PotentialMargin = oppValue,
+                Timestamp = DateTime.UtcNow,
+                TradeOpportunityStateId = TradeOpportunityState.States.Single(x => x.Code == stateCode).Id
+            };
+
             // If the oppvalue is below treshold and doesn't exist yet, then ignore it. Else stop it.
             if (oppValue < SystemSetting.MinimumTradeOpportunityPercent)
             {
@@ -111,7 +128,9 @@ namespace RBBot.Core.Engine
                 }
                 else
                 {
-                    await EndTradeOpportunity(tradeOpportunities[opportunity.UniqueIdentifier], TradeOpportunityState.States.Single(x => x.Code == "EXP-BELOW"));
+                    var belowThresholdState = TradeOpportunityState.States.Single(x => x.Code == "EXP-BELOW");
+                    newTradeValue.TradeOpportunityStateId = belowThresholdState.Id;
+                    await EndTradeOpportunity(tradeOpportunities[opportunity.UniqueIdentifier], belowThresholdState, newTradeValue);
                     return null;
                 }
             }
@@ -130,7 +149,9 @@ namespace RBBot.Core.Engine
                     StartTime = DateTime.UtcNow,
                     TradeOpportunityTypeId = TradeOpportunityType.Types.Single(x => x.Code == opportunity.TypeCode).Id,
                     TradeOpportunityStateId = TradeOpportunityState.States.Single(x => x.Code == stateCode).Id,
-                    Description = opportunity.ToString()
+                    Description = opportunity.UniqueIdentifier,
+                    LatestOpportunity = opportunity,
+                    LastestUpdate = DateTime.UtcNow
                 };
             }
             );
@@ -139,13 +160,6 @@ namespace RBBot.Core.Engine
             tradeOpp.LastestUpdate = DateTime.UtcNow;
 
             // Otherwise the opportunity is still valid. 
-
-            var newTradeValue = new TradeOpportunityValue()
-            {
-                PotentialMargin = oppValue,
-                Timestamp = DateTime.UtcNow,
-            };
-
             // If this is a new opportunity, then we definitely need to save to DB.
             if (isNewOpportunity)
             {

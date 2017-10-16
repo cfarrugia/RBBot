@@ -23,6 +23,10 @@ namespace RBBot.Core.Models
 
         public decimal PotentialMargin { get; set; }
 
+        public int TradeOpportunityStateId { get; set; }
+
+        public virtual TradeOpportunityState TradeOpportunityState { get; set; }
+
         public virtual TradeOpportunity TradeOpportunity { get; set; }
     }
 }

@@ -68,10 +68,11 @@ namespace RBBot.RBConsole
                     priceProcessors.Add(ArbPriceManager.Instance);
                     priceProcessors.Add(TriangulationManager.Instance);
 
+                    
+                    var integrations = await DataProcessingEngine.InitializeEngine(priceProcessors.ToArray());
+
                     // Initialize the data processing engine. This returns the integrations and start the integrations engines to spit out prices.
                     OpportunityScoreEngine.InitializeEngine();
-
-                    var integrations = await DataProcessingEngine.InitializeEngine(priceProcessors.ToArray());
 
 
                     // From the integrations and price processors we get a stream of opportunities.
@@ -91,7 +92,7 @@ namespace RBBot.RBConsole
                             var state = TradeOpportunityState.States.Where(x => x.Id == opp.TradeOpportunityStateId).Single().Code;
                             var type = TradeOpportunityType.Types.Where(x => x.Id == opp.TradeOpportunityTypeId).Single().Code;
 
-                            Console.WriteLine($"Opp: {type} | {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetValue():0.00}");
+                            Console.WriteLine($"Opp: {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetValue():0.00}");
                         }, 
                         (err) => 
                         {
@@ -109,6 +110,7 @@ namespace RBBot.RBConsole
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+                Console.ReadLine();
             }
 
 

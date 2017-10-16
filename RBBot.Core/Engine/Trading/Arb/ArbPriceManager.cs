@@ -58,12 +58,9 @@ namespace RBBot.Core.Engine.Trading.Arb
 
             // Take tuples with lower price as the first item. 
             var opportunities =
-                otherExchangePairs.Where(x => x.LatestPrice < changedPair.LatestPrice)
-                    .Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(x, changedPair, CalculateOpportunityMargin(x, changedPair)))
+                otherExchangePairs.Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(x, changedPair, CalculateOpportunityMargin(x, changedPair)))
                 .Union(
-                    otherExchangePairs.Where(x => x.LatestPrice > changedPair.LatestPrice)
-                    .Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(changedPair, x, CalculateOpportunityMargin(x, changedPair))))
-                .Where(x => x.Item3 > 0m) // The opportunities are the once that have a positive value
+                otherExchangePairs.Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(changedPair, x, CalculateOpportunityMargin(x, changedPair))))
                 .Select(x => new ArbOpportunity(x.Item1, x.Item2))
                 .ToList();
             //            

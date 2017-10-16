@@ -53,6 +53,9 @@ namespace RBBot.Core.Engine
 
                 // Now initialize the setting helper with all settings!
                 SettingHelper.InitializeSettings(settings.ToArray());
+                
+                // Initialize system settings.
+                SystemSetting.LoadSystemSettings(ctx);
 
 
                 // Initialize all exchanges and their integrations.
@@ -79,8 +82,7 @@ namespace RBBot.Core.Engine
                 // Initialize the price cache;
                 TradePriceIndex.Initialize(exchangeModels.ToArray(), ctx.TradePairs.ToArray());
 
-                // Initialize system settings.
-                SystemSetting.LoadSystemSettings(ctx);
+
 
 
                 // Synchronize all the trading accounts.

@@ -34,6 +34,7 @@ namespace RBBot.Core.Exchanges.GDAX
         public GDAXIntegration(Exchange[] exchanges) : base(exchanges)
         {
             this.Exchange = exchanges[0];
+            
             GdaxAuthenticator auth = new GdaxAuthenticator(this.Exchange.GetSetting("ApiKey"), this.Exchange.GetSetting("ApiPassPhrase"), this.Exchange.GetSetting("ApiSecret"));
             gdaxClient = new GdaxClient(auth);
         }

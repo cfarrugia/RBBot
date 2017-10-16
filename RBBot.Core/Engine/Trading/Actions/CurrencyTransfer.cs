@@ -46,7 +46,7 @@ namespace RBBot.Core.Engine.Trading.Actions
 
         public async Task<TradeOpportunityTransaction> ExecuteAction(bool simulate)
         {
-          // Decrement from account, increment to account.
+            // Decrement from account, increment to account.
             this.FromAccount.Balance -= this.EstimatedCost + this.TransactionAmount;
             this.ToAccount.Balance += this.TransactionAmount;
 
@@ -55,7 +55,6 @@ namespace RBBot.Core.Engine.Trading.Actions
                 ctx.Entry(this.FromAccount).State = System.Data.Entity.EntityState.Modified;
                 ctx.Entry(this.ToAccount).State = System.Data.Entity.EntityState.Modified;
                 await ctx.SaveChangesAsync();
-
 
                 if (!simulate)
                 {

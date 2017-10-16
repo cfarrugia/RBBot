@@ -18,6 +18,8 @@ namespace RBBot.Core.Helpers
         public static decimal MinimumTradeOpportunityPercent { get; private set; }
         public static int OpportunityTimeoutInSeconds { get; private set; }
 
+        public static int ExchangeConnectionTimeoutInSeconds { get; private set; }
+
         public static void LoadSystemSettings(RBBotContext dbContext)
         {
             //
@@ -25,6 +27,7 @@ namespace RBBot.Core.Helpers
             PreferredCyptoCurrency = dbContext.Currencies.Where(x => x.Code == preferredCode).Single();
             MinimumTradeOpportunityPercent = Convert.ToDecimal(SettingHelper.GetSystemSetting("MinimumTradeOpportunityPercent"));
             OpportunityTimeoutInSeconds = Convert.ToInt32(SettingHelper.GetSystemSetting("OpportunityTimeoutInSeconds"));
+            ExchangeConnectionTimeoutInSeconds = Convert.ToInt32(SettingHelper.GetSystemSetting("ExchangeConnectionTimeoutInSeconds"));
         }
 
     }
