@@ -12,7 +12,7 @@ using RBBot.Core.Engine.Trading.Actions;
 
 namespace RBBot.Core.Exchanges.Bitflyer
 {
-    public class BitflyerIntegration : ExchangeIntegration//, IExchangeTrader
+    public class BitflyerIntegration : ExchangeIntegration, IExchangeTrader
     {
         public BitflyerIntegration(Exchange[] exchanges) : base(exchanges)
         {
@@ -103,6 +103,10 @@ namespace RBBot.Core.Exchanges.Bitflyer
                 case CurrencyCode.Btc :  return "BTC";
                 case CurrencyCode.Eth: return "ETH";
                 case CurrencyCode.Jpy: return "JPY";
+                case CurrencyCode.Bch: return "BCH";
+                //case CurrencyCode.Etc: return "ETC";
+                case CurrencyCode.Ltc: return "LTC";
+                //case CurrencyCode.Mona: return "MONA";
                 default: return null; // This version of the apis doesn't support more currencies.
             }
 
@@ -116,6 +120,10 @@ namespace RBBot.Core.Exchanges.Bitflyer
                 case "BTC": return CurrencyCode.Btc;
                 case "ETH": return CurrencyCode.Eth;
                 case "JPY": return CurrencyCode.Jpy;
+                case "BCH": return CurrencyCode.Bch;
+                //case "ETC": return CurrencyCode.Etc;
+                case "LTC": return CurrencyCode.Ltc;
+                //case "MONA": return CurrencyCode.Mona;
                 default: throw new Exception($"Bitflyer API: Unsupported currency: {code}"); // This version of the apis doesn't support more currencies.
             }
 
@@ -127,19 +135,36 @@ namespace RBBot.Core.Exchanges.Bitflyer
             var addresses = await bitflyerApiClient.GetAddresses();
             var balances = await bitflyerApiClient.GetBalance();
 
-
             // Transform to exchange balance objects.
-            return balances.Select(x => new ExchangeBalance(this.Exchange, Convert.ToDecimal(x.Available), DateTime.UtcNow, FromCurrencyEnum(x.CurrencyCode), addresses.Where(y => y.CurrencyCode == x.CurrencyCode).FirstOrDefault().Address, null)).ToArray();
+            var exchangeBalances = balances.Select(x => new ExchangeBalance(this.Exchange, Convert.ToDecimal(x.Available), DateTime.UtcNow, FromCurrencyEnum(x.CurrencyCode), null, null)).Where(x => x.CurrencyCode != null).ToArray();
+
+            // update any addresses
+            foreach (var addr in addresses)
+            {
+                var exchangeBalance = exchangeBalances.SingleOrDefault(x => x.CurrencyCode == FromCurrencyEnum(addr.CurrencyCode));
+                if (exchangeBalance == null) continue;
+                exchangeBalance.Address = addr.Address;
+            }
+
+            return exchangeBalances;
         }
 
-        public Task<string> GetDepositAddressAsync(Currency currency)
-        {
-            bitflyerApiClient.GetAddresses();
-            throw new NotImplementedException();
-        }
 
         public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
         {
+            SendCoinParameter param = new SendCoinParameter();
+            param.Address = toAccountAddress;
+            param.Amount = Convert.ToDouble(amount);
+            param.CurrencyCode = CurrencyCodeToEnum(currency.Code);
+
+
+
+            //this.bitflyerApiClient.SendCoin(param);
+
+            //WithdrawParameter param = new WithdrawParameter();
+            //param.
+
+            //this.bitflyerApiClient.depoWithdraw(null);
             throw new NotImplementedException();
         }
 
@@ -150,7 +175,12 @@ namespace RBBot.Core.Exchanges.Bitflyer
 
         public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
-            throw new NotImplementedException();
+#warning watch out ... this was copied and pasted
+            // GDAX uses the "from" pair to calculate fees
+            // Otherwise we need to convert first. The is equal to the order amount * fee percent.
+            var fee = orderAmount * tradePair.FeePercent;
+
+            return new TransactionFee() { Amount = fee, Currency = tradePair.TradePair.FromCurrency };
         }
     }
 

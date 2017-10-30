@@ -26,7 +26,7 @@ namespace RBBot.Core.Engine.Trading
         public Task<TradeOpportunityTransaction> ExecuteAction(bool simulate)
         {
             // Do nothing.
-            return null;
+            return Task.FromResult<TradeOpportunityTransaction>(null);
         }
     }
 }

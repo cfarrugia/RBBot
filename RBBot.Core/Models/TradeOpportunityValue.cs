@@ -14,7 +14,6 @@ namespace RBBot.Core.Models
         {
         }
 
-        //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         public int TradeOpportunityId { get; set; }

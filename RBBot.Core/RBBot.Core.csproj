@@ -37,10 +37,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BitFlyer.Apis, Version=4.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\BitFlyer.Apis.4.1.0\lib\net45\BitFlyer.Apis.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Castle.Core, Version=4.1.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <HintPath>..\packages\Castle.Core.4.1.1\lib\net45\Castle.Core.dll</HintPath>
       <Private>True</Private>
@@ -101,8 +97,8 @@
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="PubNub-Messaging, Version=0.0.0.0, Culture=neutral, PublicKeyToken=dc66f52ce6619f44, processorArchitecture=MSIL">
-      <HintPath>..\packages\Pubnub.3.8.5.0\lib\net40\PubNub-Messaging.dll</HintPath>
+    <Reference Include="PubnubNetPlatform, Version=3.8.7.0, Culture=neutral, PublicKeyToken=dc66f52ce6619f44, processorArchitecture=MSIL">
+      <HintPath>..\packages\PubnubNetPlatform.3.8.7.0\lib\net40\PubnubNetPlatform.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Remotion.Linq, Version=2.1.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
@@ -259,6 +255,69 @@
     <Compile Include="Engine\Trading\Triangulation\TriangulationOpportunity.cs" />
     <Compile Include="Engine\Trading\Triangulation\TriangulationManager.cs" />
     <Compile Include="Engine\Trading\Arb\ArbOpportunity.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\BitFlyerConstants.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\BitFlyerEnums.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\Exceptions\BitFlyerApiException.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\Extensions\EnumExtensions.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\AddressApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\BalanceApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\BankAccountApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\ChildOrderApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\CoinInApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\CoinOutApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\CollateralApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\DepositApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\ParentOrderApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\PermissionApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\PositionApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\PrivateExecutionApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\SendCoinApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\WithdrawalApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PrivateApis\WithdrawApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ProductCode.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\BoardApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\ChatApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\ChatUsaApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\HealthApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\MarketApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\MarketUsaApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\PublicExecutionApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PublicApis\TickerApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\PubnubChannel.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RealtimeApi.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\CancelAllOrdersParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\CancelChildOrderParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\CancelParentOrderParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\SendChildOrderParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\SendCoinParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\SendParentOrderParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\RequestData\WithdrawParameter.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Balance.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\BankAccount.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Board.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\BoardOrder.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Chat.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\ChildOrder.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\CoinIn.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\CoinOut.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Collateral.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\CryptoCurrencyAddress.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Deposit.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Error.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Health.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Market.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\ParentOrder.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\ParentOrderDetail.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Position.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\PostResult.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\PrivateExecution.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\PublicExecution.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Ticker.cs" />
+    <Compile Include="Exchanges\Bitflyer\BitFlyer.Apis\ResponseData\Withdrawal.cs" />
     <Compile Include="Exchanges\ExchangeBalance.cs" />
     <Compile Include="Exchanges\IExchange.cs" />
     <Compile Include="Exchanges\IExchangeTrader.cs" />
@@ -352,6 +411,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="edge\x64\edge_nativeclr.node">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -373,6 +433,7 @@
     <Content Include="edge\x86\node.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Exchanges\Bitflyer\BitFlyer.Apis\BitFlyer.Apis.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

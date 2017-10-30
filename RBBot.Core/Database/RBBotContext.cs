@@ -148,12 +148,6 @@ namespace RBBot.Core.Database
                 .HasMany(e => e.TradeOpportunityTransactions)
                 .WithRequired(e => e.TradeOpportunity)
                 .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<TradeOpportunity>()
-                .HasMany(e => e.TradeOpportunityTransactions)
-                .WithRequired(e => e.TradeOpportunity)
-                .WillCascadeOnDelete(false);
-
            
             modelBuilder.Entity<TradeOpportunityType>()
                 .Property(e => e.Code)

@@ -151,25 +151,26 @@ namespace RBBot.Core.Exchanges.Poloniex
                 .ToArray();
         }
 
-        public Task<string> GetDepositAddressAsync(Currency currency)
+        public async Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
         {
-            
-            throw new NotImplementedException();
-        }
-
-        public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
-        {
-            throw new NotImplementedException();
+            await this.poloniexClient.Wallet.PostWithdrawalAsync(currency.Code, Convert.ToDouble(amount), toAccountAddress);
         }
 
         public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
+            //this.poloniexClient.
             throw new NotImplementedException();
         }
 
         public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
-            throw new NotImplementedException();
+#warning watch out ... this was copied and pasted
+            // GDAX uses the "from" pair to calculate fees
+            // Otherwise we need to convert first. The is equal to the order amount * fee percent.
+            var fee = orderAmount * tradePair.FeePercent;
+
+            return new TransactionFee() { Amount = fee, Currency = tradePair.TradePair.FromCurrency };
+
         }
     }
 }

@@ -116,12 +116,6 @@ namespace RBBot.Core.Exchanges.GDAX
             throw new NotImplementedException();
         }
 
-        public Task<string> GetDepositAddressAsync(Currency currency)
-        {
-            // For security reasons GDAX
-            throw new NotImplementedException();
-        }
-
         public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
             throw new NotImplementedException();

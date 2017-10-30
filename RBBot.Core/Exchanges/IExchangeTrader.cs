@@ -15,12 +15,6 @@ namespace RBBot.Core.Exchanges
 
         Exchange Exchange { get; }
 
-        //Task<ExchangeBalance> GetBalanceAsync(Currency currency);
-
-        Task<string> GetDepositAddressAsync(Currency currency);
-
-        Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress);
-
         Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair);
 
         TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair);

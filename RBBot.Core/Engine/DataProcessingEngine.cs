@@ -20,9 +20,8 @@ namespace RBBot.Core.Engine
     public static class DataProcessingEngine
     {
 
-        public static async Task<IExchange[]> InitializeEngine(IMarketPriceProcessor[] priceObservers)
+        public static async Task<IExchange[]> InitializeEngine(bool isSimulation = true)
         {
-
 
             IList<Exchange> exchangeModels = null;
             IList<Setting> settings = null;
@@ -90,7 +89,7 @@ namespace RBBot.Core.Engine
                 foreach (var te in tradingExchanges)
                 {
                     te.Exchange.TradingIntegration = te; // Set the trading integration.
-                    await SynchronizeAccounts(te, ctx);
+                    await SynchronizeAccounts(te, ctx, isSimulation);
                 }
                 await ctx.SaveChangesAsync();
             }
@@ -105,7 +104,7 @@ namespace RBBot.Core.Engine
             return integrations.ToArray();
         }
 
-        private static async Task SynchronizeAccounts(IExchangeTrader exchangeIntegration, RBBotContext dbContext)
+        private static async Task SynchronizeAccounts(IExchangeTrader exchangeIntegration, RBBotContext dbContext, bool isSimulation)
         {
             Exchange exchangeModel = exchangeIntegration.Exchange;
 
@@ -120,7 +119,7 @@ namespace RBBot.Core.Engine
             {
                 var exCurr = exchangebalances[x.Key];
                 var acc = existingAccounts[x.Key];
-                acc.Balance = exCurr.Balance;
+                acc.Balance = isSimulation ? acc.Balance : exCurr.Balance; 
                 acc.LastUpdate = exCurr.Timestamp;
 
                 if (exCurr.ExchangeIdentifier != null) acc.ExchangeIdentifier = exCurr.ExchangeIdentifier;
@@ -134,7 +133,7 @@ namespace RBBot.Core.Engine
                 TradeAccount acc = new TradeAccount()
                 {
                     Address = b.Address,
-                    Balance = b.Balance,
+                    Balance = isSimulation ? 0m : b.Balance,
                     Exchange = exchangeModel,
                     ExchangeIdentifier = b.ExchangeIdentifier,
                     LastUpdate = b.Timestamp,

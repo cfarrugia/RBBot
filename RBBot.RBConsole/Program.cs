@@ -54,9 +54,11 @@ namespace RBBot.RBConsole
             // Return the observable of opportunities. Filter out null opportunities.
             return opportunityObserver;//.Where(x => x.GetValue() > 0m);
         }
+        
 
         public static void Main(string[] args)
         {
+            bool isSimulation = true; // This is very important. Will be bubbled down to signal that this is just a simulation.
 
             try
             {
@@ -69,7 +71,7 @@ namespace RBBot.RBConsole
                     priceProcessors.Add(TriangulationManager.Instance);
 
                     
-                    var integrations = await DataProcessingEngine.InitializeEngine(priceProcessors.ToArray());
+                    var integrations = await DataProcessingEngine.InitializeEngine();
 
                     // Initialize the data processing engine. This returns the integrations and start the integrations engines to spit out prices.
                     OpportunityScoreEngine.InitializeEngine();
@@ -80,19 +82,37 @@ namespace RBBot.RBConsole
                     IObservable<TradeOpportunity> tradeableStream =
                         GetOpportunityObservable(integrations, priceProcessors.ToArray())
                         .GetTradeOpportunityStream();
-                    //.Where(x => x.LatestOpportunity.RequirementsMet && x.LatestOpportunity.MaximumPossibleTransactionAmount > 0m); 
 
                     //
                     IScheduler s = System.Reactive.Concurrency.ThreadPoolScheduler.Instance;
 
+                    // Subscribe just to output to console.
+                    tradeableStream.SubscribeOn(s).Subscribe((opp) =>
+                    {
+                        var state = TradeOpportunityState.States.Where(x => x.Id == opp.TradeOpportunityStateId).Single().Code;
+                        var type = TradeOpportunityType.Types.Where(x => x.Id == opp.TradeOpportunityTypeId).Single().Code;
 
-                    var sub = tradeableStream.SubscribeOn(s).Subscribe(
-                        (opp) => 
+                        Console.WriteLine($"Opp: {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetValue():0.00}");
+                    });
+
+                    // Subscribe to trade.
+
+                    tradeableStream
+                        .Where(x => x.LatestOpportunity.RequirementsMet && x.LatestOpportunity.MaximumPossibleTransactionAmount > 0m)
+                        //.Select(tr => Observable.FromAsync<bool>(OpportunityScoreEngine.ExecuteTradeOpportunity()))
+                        .SubscribeOn(s)
+                        .Subscribe((opp) =>
                         {
-                            var state = TradeOpportunityState.States.Where(x => x.Id == opp.TradeOpportunityStateId).Single().Code;
-                            var type = TradeOpportunityType.Types.Where(x => x.Id == opp.TradeOpportunityTypeId).Single().Code;
+                            try
+                            {
+                                Task.Run(() => OpportunityScoreEngine.ExecuteTradeOpportunity(opp, isSimulation));
 
-                            Console.WriteLine($"Opp: {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetValue():0.00}");
+                            }
+                            catch(Exception ex)
+                            {
+                                Console.WriteLine("");
+
+                            }
                         }, 
                         (err) => 
                         {

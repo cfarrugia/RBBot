@@ -59,12 +59,56 @@ namespace RBBot.Core.Engine
 
             // Merge the stream of expired tradeopportunities too.
             // Remove any null opportunities. 
-            tradeStream = tradeStream.Merge(expiredOpportunities).Where(x => x != null);
+            tradeStream = tradeStream
+                .Merge(expiredOpportunities).Where(x => x != null)
+                .Catch<TradeOpportunity, Exception>(err =>
+                 {
+                     Console.WriteLine($"Error occurred in trade stream: {err.ToString()}");
+                     return Observable.Empty<TradeOpportunity>();
+                 }); // And absorb any errors!
 
             return tradeStream;
         }
 
-        public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState, TradeOpportunityValue finalOpportunityValue = null)
+        public static async Task ExecuteTradeOpportunity(TradeOpportunity opportunity, bool isSimulation = true)
+        {
+            // if the opportunity is being executed, return now.
+            if (opportunity.IsExecuting || opportunity.IsExecuted) return;
+
+            try
+            {
+                
+                // Execute opportunity and get a list of opportunities from it. 
+                TradeOpportunityTransaction[] transactions = null;
+                opportunity.IsExecuting = true;
+
+
+                var result = await opportunity.LatestOpportunity.ExecuteOpportunity(opportunity.LatestOpportunity.MaximumPossibleTransactionAmount, true);
+
+               
+                // If execution was ok, then add the transactions. Otherwise signal a failed execution.
+                var finalStateCode = isSimulation ? "EXEC-SIM" : "EXEC-REAL";
+                if (result.Item1 == true)
+                    transactions = result.Item2;
+                else
+                    finalStateCode = finalStateCode + "-ERR";
+
+                var finalState = TradeOpportunityState.States.Single(x => x.Code == finalStateCode);
+
+                opportunity.IsExecuted = true;
+
+                await OpportunityScoreEngine.EndTradeOpportunity(opportunity, finalState, null, transactions);
+            }
+            catch (Exception ex)
+            {
+
+
+                Console.WriteLine();
+            }
+
+        }
+
+        public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState, TradeOpportunityValue finalOpportunityValue = null, TradeOpportunityTransaction[] transactions = null)
         {
             // Try removing the opportunity from the dictionary.
             TradeOpportunity time = null;
@@ -73,7 +117,6 @@ namespace RBBot.Core.Engine
             if (removedSuccess == false) // If the opportunity couldn't be removed, then return. 
                 return;
 
-            opportunity.TradeOpportunityState = finalState;
             opportunity.TradeOpportunityStateId = finalState.Id;
             opportunity.EndTime = DateTime.UtcNow;
 
@@ -92,6 +135,27 @@ namespace RBBot.Core.Engine
                 {
                     finalOpportunityValue.TradeOpportunityId = opportunity.Id;
                     ctx.TradeOpportunityValues.Add(finalOpportunityValue);
+                }
+
+                // With transactions we also look into the accounts and update them.
+                if (transactions != null)
+                {
+                    transactions.ToList().ForEach(x => x.TradeOpportunityId = opportunity.Id);
+                    ctx.TradeOpportunityTransactions.AddRange(transactions);
+
+                    var accountsToUpdate = new HashSet<TradeAccount>();
+
+                    foreach (var tx in transactions)
+                    {
+                        if (tx.FromAccount != null && !accountsToUpdate.Contains(tx.FromAccount)) accountsToUpdate.Add(tx.FromAccount);
+                        if (tx.ToAccount != null && !accountsToUpdate.Contains(tx.ToAccount)) accountsToUpdate.Add(tx.ToAccount);
+                    }
+
+                    foreach (var acc in accountsToUpdate)
+                    {
+                        ctx.TradeAccounts.Attach(acc);
+                        ctx.Entry(acc).State = System.Data.Entity.EntityState.Modified;
+                    }
                 }
 
                 ctx.TradeOpportunities.Attach(opportunity);
@@ -163,14 +227,16 @@ namespace RBBot.Core.Engine
             // If this is a new opportunity, then we definitely need to save to DB.
             if (isNewOpportunity)
             {
-                requirements.ForEach(x => { x.TradeOpportunity = tradeOpp; });
-                newTradeValue.TradeOpportunity = tradeOpp;
-
-
+                
                 using (var ctx = new RBBotContext())
                 {
                     ctx.TradeOpportunities.Add(tradeOpp);
-                    ctx.TradeOpportunityRequirements.AddRange(requirements);
+
+                    requirements.ForEach(x => { tradeOpp.TradeOpportunityRequirements.Add(x); });
+
+                    newTradeValue.TradeOpportunity = tradeOpp;
+
+                    //ctx.TradeOpportunityRequirements.AddRange(requirements);
                     ctx.TradeOpportunityValues.Add(newTradeValue);
                     await ctx.SaveChangesAsync();
                 }

@@ -23,7 +23,7 @@ namespace RBBot.Core.Models
 
         public int CurrencyId { get; set; }
 
-        public bool IsExecuted { get; set; }
+        public bool IsExecuted { get; set; } = false;
 
         public bool? IsSimulation { get; set; }
 
@@ -56,6 +56,9 @@ namespace RBBot.Core.Models
 
         [NotMapped]
         public DateTime LastestUpdate { get; set; }
+
+        [NotMapped]
+        public bool IsExecuting { get; set; } = false;
         
     }
 }

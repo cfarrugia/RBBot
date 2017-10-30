@@ -102,12 +102,6 @@ namespace RBBot.Core.Exchanges.Kraken
             ).ToArray();
         }
 
-        public Task<string> GetDepositAddressAsync(Currency currency)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public Task WithdrawAsync(Currency currency, decimal amount, string fromAccountAddress, string toAccountAddress)
         {
             throw new NotImplementedException();
@@ -120,7 +114,12 @@ namespace RBBot.Core.Exchanges.Kraken
 
         public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
         {
-            throw new NotImplementedException();
+#warning watch out ... this was copied and pasted
+            // GDAX uses the "from" pair to calculate fees
+            // Otherwise we need to convert first. The is equal to the order amount * fee percent.
+            var fee = orderAmount * tradePair.FeePercent;
+
+            return new TransactionFee() { Amount = fee, Currency = tradePair.TradePair.FromCurrency };
         }
     }
 }

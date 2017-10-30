@@ -21,11 +21,6 @@ namespace RBBot.Core.Engine.Trading
         public abstract decimal GetValue();
 
         /// <summary>
-        /// This is the opportunity model object used in the db to track the opportunity changes.
-        /// </summary>
-        public TradeOpportunity OpportunityModel = null;
-
-        /// <summary>
         /// This is the base currency of the opportunity. Use this with the margin to calculate actual monitary value.
         /// </summary>
         public Currency OpportunityBaseCurrency { get; set; }
@@ -71,79 +66,67 @@ namespace RBBot.Core.Engine.Trading
         }
 
 
-        //        /// <summary>
-        //        /// This method is used to actually execute the opportunity
-        //        /// </summary>
-        //        /// <param name="simulate"></param>
-        //        public async Task<bool> ExecuteOpportunity(decimal transactionAmount, bool simulate = true)
-        //        {
-        //            // Before executing, we do one last requirements check. 
-        //            using (var ctx = new RBBotContext())
-        //            {
-        //                var checksPassed = await this.GetCheckAndPersistRequirements(ctx);
-        //                List<TradeOpportunityTransaction> transactions = new List<TradeOpportunityTransaction>();
+        /// <summary>
+        /// This method is used to actually execute the opportunity
+        /// </summary>
+        /// <param name="simulate"></param>
+        public async Task<Tuple<bool, TradeOpportunityTransaction[]>> ExecuteOpportunity(decimal transactionAmount, bool simulate = true)
+        {
+            var checksPassed = this.GetAndCheckRequirements().All(x => x.RequirementMet);
+            if (!checksPassed) return new Tuple<bool, TradeOpportunityTransaction[]>(false, null);
 
-        //                // This anonymous function executes the action and waits for all children. 
-        //                Func<ITradeAction, Task> executeNode = null;
-        //                executeNode = async (action) => 
-        //                   {
+            // This anonymous function executes the action and waits for all children. 
+            List<TradeOpportunityTransaction> transactions = new List<TradeOpportunityTransaction>();
 
-
-        //                       // If to be executed before children...
-        //                       if (action.ExecuteBeforeChildren)
-        //                       {
-        //                           var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
-        //                           if (tx != null) transactions.Add(tx);
-        //                       }
+            Func<ITradeAction, Task> executeNode = null;
+            executeNode = async (action) =>
+            {
+                // If to be executed before children...
+                if (action.ExecuteBeforeChildren)
+                {
+                    var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
+                    if (tx != null) transactions.Add(tx);
+                }
 
 
-        //                       // Loop through the children.
-        //                       foreach (var child in action.ChildrenActions)
-        //                       {
-        //                           // If children to be executed asynchronously...
-        //                           if (action.ExecuteChildrenInParallel)
-        //                               await executeNode(child);
-        //                           else
-        //                               Task.Run(() => executeNode).Wait();
-        //                       }
+                // Loop through the children.
+                if (action.ChildrenActions != null)
+                {
+                    foreach (var child in action.ChildrenActions)
+                    {
+                        // If children to be executed asynchronously...
+                        if (action.ExecuteChildrenInParallel)
+                            await executeNode(child);
+                        else
+                            Task.Run(() => executeNode).Wait();
+                    }
+                }
 
-        //                       // If to be executed afterchildren...
-        //                       if (!action.ExecuteBeforeChildren)
-        //                       {
-        //                           var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
-        //                           if (tx != null) transactions.Add(tx);
-        //                       }
+                // If to be executed afterchildren...
+                if (!action.ExecuteBeforeChildren)
+                {
+                    var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
+                    if (tx != null) transactions.Add(tx);
+                }
 
-        //                   };
+            };
 
+            var executionOk = checksPassed;
+            try
+            {
+                await executeNode(this.GetTradeAction(transactionAmount));
+            }
+            catch (Exception ex)
+            {
+                // 
+                executionOk = false;
+#warning make sure you capture the exception properly.
+            }
 
-        //                var executionOk = checksPassed;
+            //
+            return new Tuple<bool, TradeOpportunityTransaction[]>(executionOk, transactions.ToArray());
 
-        //                // If the checks have passed, then execute all actions!
-        //                if (checksPassed)
-        //                {
-        //                    try
-        //                    {
-        //                        await executeNode(this.GetTradeAction(transactionAmount));
-        //                    }
-        //                    catch (Exception ex)
-        //                    {
-        //                        // 
-        //                        executionOk = false;
-        //#warning make sure you capture the exception properly.
-        //                    }
-        //                }
-
-        //                // Save all the transaction actions to database.
-        //                ctx.TradeOpportunityTransactions.AddRange(transactions);
-        //                this.OpportunityModel.IsExecuted = true;
-        //                this.OpportunityModel.EndTime = DateTime.UtcNow;
-        //                await ctx.SaveChangesAsync();
-
-        //                //
-        //                return executionOk;
-        //            }
-        //        }
+        }
 
         #region Opportunity Helpers
 
@@ -186,6 +169,17 @@ namespace RBBot.Core.Engine.Trading
                     Message = account.Balance <= 0m ? $"Account in {currency.Code} has zero balance on {tradePair.Exchange}" : "",
                     Timestamp = DateTime.UtcNow,
                     TradeOpportunityRequirementTypeId = TradeOpportunityRequirementType.RequirementTypes.Where(x => x.Code == "EXC-ACC-BAL").Single().Id,
+                });
+
+                bool noAddress = string.IsNullOrEmpty(account.Address);
+
+                reqs.Add(new TradeOpportunityRequirement()
+                {
+                    RequirementMet = !noAddress,
+                    ItemIdentifier = $"{requirementPrefix} Account - {currency.Code}",
+                    Message = noAddress ? $"Account in {currency.Code} has no address on {tradePair.Exchange}" : "",
+                    Timestamp = DateTime.UtcNow,
+                    TradeOpportunityRequirementTypeId = TradeOpportunityRequirementType.RequirementTypes.Where(x => x.Code == "EXC-ACC-ADDR").Single().Id,
                 });
             }
 

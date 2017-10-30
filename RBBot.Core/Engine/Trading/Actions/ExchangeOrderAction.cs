@@ -102,12 +102,11 @@ namespace RBBot.Core.Engine.Trading.Actions
             {
                 CreationDate = DateTime.UtcNow,
                 ExchangeRate = exchangeRate,
-                FromAccount = fromAccount,
-                ToAccount = toAccount,
+                FromAccountId = fromAccount.Id,
+                ToAccountId = toAccount.Id,
                 ExternalTransactionId = orderResponse.ExternalTransactionId,
-                ExecutedOnExchange = this.TradePair.Exchange,
+                ExecuteOnExchangeId = this.TradePair.Exchange.Id,
                 IsReal = !simulate,
-                TradeOpportunity = null, // not set here
                 FromAccountFee = fromAccountFee,
                 ToAccountFee = toAccountFee,
                 FromAmount = fromAmount,
