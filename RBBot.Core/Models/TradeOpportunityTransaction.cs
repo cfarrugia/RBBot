@@ -14,15 +14,10 @@ namespace RBBot.Core.Models
         {
         }
 
+        [Key]
         public long Id { get; set; }
 
         public bool IsReal { get; set; }
-
-        public int TradeOpportunityId { get; set; }
-
-        public int FromAccountId { get; set; }
-
-        public int ToAccountId { get; set; }
 
         public decimal FromAmount { get; set; }
 
@@ -46,13 +41,26 @@ namespace RBBot.Core.Models
 
         public string ExternalTransactionId { get; set; }
 
-        public int ExecuteOnExchangeId { get; set; }
 
+
+        public virtual int ExecutedOnExchangeId { get; set; }
+
+        public virtual int FromAccountId { get; set; }
+
+        public virtual int ToAccountId { get; set; }
+        public virtual int TradeOpportunityId { get; set; }
+
+
+        [ForeignKey("ExecutedOnExchangeId")]
         public virtual Exchange ExecutedOnExchange { get; set; }
 
+        [ForeignKey("FromAccountId")]
         public virtual TradeAccount FromAccount { get; set; }
 
+        [ForeignKey("ToAccountId")]
         public virtual TradeAccount ToAccount { get; set; }
+
+        [ForeignKey("TradeOpportunityId")]
         public virtual TradeOpportunity TradeOpportunity { get; set; }
     }
 }

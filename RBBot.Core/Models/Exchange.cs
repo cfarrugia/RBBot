@@ -39,7 +39,6 @@ namespace RBBot.Core.Models
             Settings = new HashSet<Setting>();
             ExchangeTradePairs = new HashSet<ExchangeTradePair>();
             TradeAccounts = new HashSet<TradeAccount>();
-            TradeOpportunityTransactions = new HashSet<TradeOpportunityTransaction>();
         }
 
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -61,9 +60,6 @@ namespace RBBot.Core.Models
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TradeAccount> TradeAccounts { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
 
         // Persistence models shouldn't have these two properties. To be honest its really convenient to have these here!
         // These are intiated at start up. 

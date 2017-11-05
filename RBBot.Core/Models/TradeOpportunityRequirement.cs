@@ -14,11 +14,10 @@ namespace RBBot.Core.Models
         {
         }
 
+        [Key]
         public int Id { get; set; }
 
         public DateTime Timestamp { get; set; }
-
-        public int TradeOpportunityRequirementTypeId { get; set; }
 
         public string ItemIdentifier { get; set; }
 
@@ -26,9 +25,14 @@ namespace RBBot.Core.Models
 
         public bool RequirementMet { get; set; }
 
-        public TradeOpportunityRequirementType TradeOpportunityRequirementType { get; set; }
-        public TradeOpportunity TradeOpportunity { get; set; }
+
+        public int TradeOpportunityRequirementTypeId { get; set; }
         public int TradeOpportunityId { get; set; }
 
+        [ForeignKey("TradeOpportunityRequirementTypeId")]
+        public TradeOpportunityRequirementType TradeOpportunityRequirementType { get; set; }
+
+        [ForeignKey("TradeOpportunityId")]
+        public TradeOpportunity TradeOpportunity { get; set; }
     }
 }

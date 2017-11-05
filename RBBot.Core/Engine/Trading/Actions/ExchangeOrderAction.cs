@@ -55,9 +55,11 @@ namespace RBBot.Core.Engine.Trading.Actions
             this.TransactionAmount = transactionAmountInFromCurrency;
         }
 
-        public async Task<TradeOpportunityTransaction> ExecuteAction(bool simulate)
+        public async Task<TradeActionResponse> ExecuteAction(bool simulate)
         {
-           
+
+            var resp = new TradeActionResponse();
+
             // This is where money is spent... be cautious
             ExchangeOrderResponse orderResponse = null;
             if (simulate == false)
@@ -71,7 +73,13 @@ namespace RBBot.Core.Engine.Trading.Actions
             }
 
 
-            if (orderResponse.Success == false) return null; // Return nothing if there was a problem.
+            if (orderResponse.Success == false)
+            {
+                resp.ExecutionSuccessful = false;
+                return resp;
+            }; // Return nothing if there was a problem.
+
+
 
             // In a trade pair of ETH -> BTC we always consider the from as the ETH
             var fromAccount = this.TradePair.Exchange.TradeAccounts.Where(x => x.Currency == this.TradePair.TradePair.FromCurrency).Single();
@@ -105,7 +113,7 @@ namespace RBBot.Core.Engine.Trading.Actions
                 FromAccountId = fromAccount.Id,
                 ToAccountId = toAccount.Id,
                 ExternalTransactionId = orderResponse.ExternalTransactionId,
-                ExecuteOnExchangeId = this.TradePair.Exchange.Id,
+                ExecutedOnExchangeId = this.TradePair.Exchange.Id,
                 IsReal = !simulate,
                 FromAccountFee = fromAccountFee,
                 ToAccountFee = toAccountFee,
@@ -117,8 +125,17 @@ namespace RBBot.Core.Engine.Trading.Actions
                 EstimatedToAccountBalanceAfterTx = toAccountBalanceAfter
             };
 
-            // Return the transaction object.
-            return tx;
+            fromAccount.Balance = fromAccountBalanceAfter;
+            toAccount.Balance = toAccountBalanceAfter;
+            fromAccount.LastUpdate = DateTime.UtcNow;
+            toAccount.LastUpdate = DateTime.UtcNow;
+
+            // Return the response.
+            resp.AffectedAccounts = new TradeAccount[] { fromAccount, toAccount };
+            resp.Transactions = new TradeOpportunityTransaction[] { tx };
+            resp.ExecutionSuccessful = true;
+
+            return resp;
         }
     }
 }

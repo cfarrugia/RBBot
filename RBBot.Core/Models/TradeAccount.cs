@@ -9,6 +9,24 @@ namespace RBBot.Core.Models
     [Table("TradeAccount")]
     public partial class TradeAccount
     {
+        #region Object overrides
+        public override bool Equals(object obj)
+        {
+
+            if (!(obj is TradeAccount)) return false;
+
+            var tp = (TradeAccount)obj;
+
+            return tp.Id == this.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Id;
+        }
+
+        #endregion
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TradeAccount()
         {
@@ -32,11 +50,5 @@ namespace RBBot.Core.Models
         public virtual Currency Currency { get; set; }
 
         public virtual Exchange Exchange { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TradeOpportunityTransaction> FromAccountTransactions { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<TradeOpportunityTransaction> ToAccountTransactions { get; set; }
     }
 }

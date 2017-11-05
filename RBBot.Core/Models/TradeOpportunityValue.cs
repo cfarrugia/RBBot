@@ -16,16 +16,17 @@ namespace RBBot.Core.Models
 
         public int Id { get; set; }
 
-        public int TradeOpportunityId { get; set; }
-
         public DateTime Timestamp { get; set; }
 
         public decimal PotentialMargin { get; set; }
 
         public int TradeOpportunityStateId { get; set; }
+        public int TradeOpportunityId { get; set; }
 
+        [ForeignKey("TradeOpportunityStateId")]
         public virtual TradeOpportunityState TradeOpportunityState { get; set; }
 
+        [ForeignKey("TradeOpportunityId")]
         public virtual TradeOpportunity TradeOpportunity { get; set; }
     }
 }

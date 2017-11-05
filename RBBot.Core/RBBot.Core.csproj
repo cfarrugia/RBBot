@@ -248,6 +248,7 @@
     <Compile Include="Engine\Trading\Actions\ExchangeOrderType.cs" />
     <Compile Include="Engine\Trading\NullAction.cs" />
     <Compile Include="Engine\Trading\OpportunityRequirement.cs" />
+    <Compile Include="Engine\Trading\TradeActionResponse.cs" />
     <Compile Include="Engine\Trading\TransactionFee.cs" />
     <Compile Include="Engine\Trading\Triangulation\CycleFinder.cs" />
     <Compile Include="Engine\Trading\Triangulation\ExchangeTriangulation.cs" />

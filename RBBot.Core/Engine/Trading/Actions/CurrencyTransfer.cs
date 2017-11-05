@@ -44,11 +44,18 @@ namespace RBBot.Core.Engine.Trading.Actions
             this.MaxExposureCost = this.BaseCurrency.DailyVolatilityIndex / (24 * 60 * 100m) * transferAmount * currency.AverageTransferTimeMinutes; // At worse, this is the maximum amount one would expect to loose during the transfer of funds
         }
 
-        public async Task<TradeOpportunityTransaction> ExecuteAction(bool simulate)
+        public async Task<TradeActionResponse> ExecuteAction(bool simulate)
         {
             // Decrement from account, increment to account.
             this.FromAccount.Balance -= this.EstimatedCost + this.TransactionAmount;
             this.ToAccount.Balance += this.TransactionAmount;
+
+            var resp = new TradeActionResponse()
+            {
+                AffectedAccounts = new TradeAccount[] { this.FromAccount, this.ToAccount },
+                ExecutionSuccessful = true,
+                Transactions = null
+            };
 
             using (var ctx = new RBBotContext())
             {
@@ -63,6 +70,8 @@ namespace RBBot.Core.Engine.Trading.Actions
 
                 throw new NotImplementedException();
             }
+
+            return resp;
         }
     }
 }

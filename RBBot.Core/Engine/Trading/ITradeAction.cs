@@ -49,6 +49,6 @@ namespace RBBot.Core.Engine.Trading
         /// </summary>
         /// <param name="simulate">flag simulation or real actions.</param>
         /// <returns></returns>
-        Task<TradeOpportunityTransaction> ExecuteAction(bool simulate);
+        Task<TradeActionResponse> ExecuteAction(bool simulate);
     }
 }

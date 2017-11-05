@@ -22,11 +22,11 @@ namespace RBBot.Core.Engine.Trading
 
         public decimal MaxExposureCost { get { return 0m; } }
 
-        
-        public Task<TradeOpportunityTransaction> ExecuteAction(bool simulate)
+
+        public Task<TradeActionResponse> ExecuteAction(bool simulate)
         {
             // Do nothing.
-            return Task.FromResult<TradeOpportunityTransaction>(null);
+            return Task.FromResult<TradeActionResponse>(new TradeActionResponse() { ExecutionSuccessful = true });
         }
     }
 }

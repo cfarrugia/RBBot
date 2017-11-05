@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RBBot.Core.Engine.Trading
@@ -29,6 +30,8 @@ namespace RBBot.Core.Engine.Trading
         public abstract string TypeCode { get; }
 
         public abstract string UniqueIdentifier { get; }
+
+        private SemaphoreSlim ExecutionSemaphore { get; set; } = new SemaphoreSlim(1); // Only one thread can do an execution at one point in time!
 
         /// <summary>
         /// This method should get the requirements needed for executing this ARB and check if the requirements are met.
@@ -70,62 +73,89 @@ namespace RBBot.Core.Engine.Trading
         /// This method is used to actually execute the opportunity
         /// </summary>
         /// <param name="simulate"></param>
-        public async Task<Tuple<bool, TradeOpportunityTransaction[]>> ExecuteOpportunity(decimal transactionAmount, bool simulate = true)
+        public async Task<TradeActionResponse> ExecuteOpportunity(decimal transactionAmount, bool simulate = true)
         {
-            var checksPassed = this.GetAndCheckRequirements().All(x => x.RequirementMet);
-            if (!checksPassed) return new Tuple<bool, TradeOpportunityTransaction[]>(false, null);
+            // Wait for semaphore.
+            await this.ExecutionSemaphore.WaitAsync();
 
-            // This anonymous function executes the action and waits for all children. 
-            List<TradeOpportunityTransaction> transactions = new List<TradeOpportunityTransaction>();
-
-            Func<ITradeAction, Task> executeNode = null;
-            executeNode = async (action) =>
-            {
-                // If to be executed before children...
-                if (action.ExecuteBeforeChildren)
-                {
-                    var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
-                    if (tx != null) transactions.Add(tx);
-                }
-
-
-                // Loop through the children.
-                if (action.ChildrenActions != null)
-                {
-                    foreach (var child in action.ChildrenActions)
-                    {
-                        // If children to be executed asynchronously...
-                        if (action.ExecuteChildrenInParallel)
-                            await executeNode(child);
-                        else
-                            Task.Run(() => executeNode).Wait();
-                    }
-                }
-
-                // If to be executed afterchildren...
-                if (!action.ExecuteBeforeChildren)
-                {
-                    var tx = Task.Run(() => action.ExecuteAction(simulate)).Result;
-                    if (tx != null) transactions.Add(tx);
-                }
-
-            };
-
-            var executionOk = checksPassed;
             try
             {
-                await executeNode(this.GetTradeAction(transactionAmount));
-            }
-            catch (Exception ex)
-            {
-                // 
-                executionOk = false;
+                var checksPassed = this.GetAndCheckRequirements().All(x => x.RequirementMet);
+                if (!checksPassed) return new TradeActionResponse() { ExecutionSuccessful = false };
+
+                List<TradeOpportunityTransaction> transactions = new List<TradeOpportunityTransaction>();
+                List<TradeAccount> accounts = new List<TradeAccount>();
+
+                // This anonymous function executes the action and waits for all children. 
+
+                Func<ITradeAction, Task> executeNode = null;
+                executeNode = async (action) =>
+                {
+                    // If to be executed before children...
+                    if (action.ExecuteBeforeChildren)
+                    {
+                        var resp = Task.Run(() => action.ExecuteAction(simulate)).Result;
+                        if ((resp != null) && resp.ExecutionSuccessful)
+                        {
+                            if (resp.Transactions != null) transactions.AddRange(resp.Transactions);
+                            if (resp.AffectedAccounts != null) accounts.AddRange(resp.AffectedAccounts);
+                        }
+                    }
+
+
+                    // Loop through the children.
+                    if (action.ChildrenActions != null)
+                    {
+                        foreach (var child in action.ChildrenActions)
+                        {
+                            // If children to be executed asynchronously...
+                            if (action.ExecuteChildrenInParallel)
+                                await executeNode(child);
+                            else
+                                Task.Run(() => executeNode).Wait();
+                        }
+                    }
+
+                    // If to be executed afterchildren...
+                    if (!action.ExecuteBeforeChildren)
+                    {
+                        var resp = Task.Run(() => action.ExecuteAction(simulate)).Result;
+                        if ((resp != null) && resp.ExecutionSuccessful)
+                        {
+                            if (resp.Transactions != null) transactions.AddRange(resp.Transactions);
+                            if (resp.AffectedAccounts != null) accounts.AddRange(resp.AffectedAccounts);
+                        }
+                    }
+
+                };
+
+                var executionOk = checksPassed;
+                try
+                {
+                    await executeNode(this.GetTradeAction(transactionAmount));
+                }
+                catch (Exception ex)
+                {
+                    // 
+                    executionOk = false;
 #warning make sure you capture the exception properly.
+                }
+
+                //
+                return new TradeActionResponse()
+                {
+                    ExecutionSuccessful = executionOk,
+                    Transactions = transactions.ToArray(),
+                    AffectedAccounts = accounts.Distinct().ToArray()
+                };
+            }
+            finally
+            {
+                this.ExecutionSemaphore.Release(); // Release semaphore.
             }
 
-            //
-            return new Tuple<bool, TradeOpportunityTransaction[]>(executionOk, transactions.ToArray());
 
+            
         }
 
         #region Opportunity Helpers

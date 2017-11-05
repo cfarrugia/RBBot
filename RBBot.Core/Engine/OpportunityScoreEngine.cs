@@ -78,26 +78,23 @@ namespace RBBot.Core.Engine
             try
             {
                 
-                // Execute opportunity and get a list of opportunities from it. 
-                TradeOpportunityTransaction[] transactions = null;
                 opportunity.IsExecuting = true;
-
-
                 var result = await opportunity.LatestOpportunity.ExecuteOpportunity(opportunity.LatestOpportunity.MaximumPossibleTransactionAmount, true);
 
                
                 // If execution was ok, then add the transactions. Otherwise signal a failed execution.
                 var finalStateCode = isSimulation ? "EXEC-SIM" : "EXEC-REAL";
-                if (result.Item1 == true)
-                    transactions = result.Item2;
-                else
+                if (!result.ExecutionSuccessful)
+                {
                     finalStateCode = finalStateCode + "-ERR";
+                    result = null; // Make result none, so we don't affect accounts and transactions!
+                }
 
                 var finalState = TradeOpportunityState.States.Single(x => x.Code == finalStateCode);
 
                 opportunity.IsExecuted = true;
 
-                await OpportunityScoreEngine.EndTradeOpportunity(opportunity, finalState, null, transactions);
+                await OpportunityScoreEngine.EndTradeOpportunity(opportunity, finalState, null, result);
             }
             catch (Exception ex)
             {
@@ -108,7 +105,7 @@ namespace RBBot.Core.Engine
 
         }
 
-        public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState, TradeOpportunityValue finalOpportunityValue = null, TradeOpportunityTransaction[] transactions = null)
+        public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState, TradeOpportunityValue finalOpportunityValue = null, TradeActionResponse tradeActionResponse = null)
         {
             // Try removing the opportunity from the dictionary.
             TradeOpportunity time = null;
@@ -123,46 +120,49 @@ namespace RBBot.Core.Engine
             // Call expired event.
             if (OnOpportunityExpired != null) OnOpportunityExpired(opportunity);
 
-#warning I should be shot for this line
-            while (opportunity.Id == 0) // Keep yielding until it's created in db
-                await Task.Delay(1000);
 
-            // Persist to db
-            using (var ctx = new RBBotContext())
+
+            // This is the part we persist to the db. We first wait for 
+            // any possible semaphore on the opportunity and release it as soon as we're done. 
+
+            await opportunity.LockingSemaphore.WaitAsync();
+            
+            try
             {
-                // If a final value is specified, add it now.
-                if (finalOpportunityValue != null)
+                // Persist to db
+                using (var ctx = new RBBotContext())
                 {
-                    finalOpportunityValue.TradeOpportunityId = opportunity.Id;
-                    ctx.TradeOpportunityValues.Add(finalOpportunityValue);
-                }
-
-                // With transactions we also look into the accounts and update them.
-                if (transactions != null)
-                {
-                    transactions.ToList().ForEach(x => x.TradeOpportunityId = opportunity.Id);
-                    ctx.TradeOpportunityTransactions.AddRange(transactions);
-
-                    var accountsToUpdate = new HashSet<TradeAccount>();
-
-                    foreach (var tx in transactions)
+                    // If a final value is specified, add it now.
+                    if (finalOpportunityValue != null)
                     {
-                        if (tx.FromAccount != null && !accountsToUpdate.Contains(tx.FromAccount)) accountsToUpdate.Add(tx.FromAccount);
-                        if (tx.ToAccount != null && !accountsToUpdate.Contains(tx.ToAccount)) accountsToUpdate.Add(tx.ToAccount);
+                        finalOpportunityValue.TradeOpportunityId = opportunity.Id;
+                        ctx.TradeOpportunityValues.Add(finalOpportunityValue);
                     }
 
-                    foreach (var acc in accountsToUpdate)
+                    // With transactions we also look into the accounts and update them.
+                    if (tradeActionResponse != null)
                     {
-                        ctx.TradeAccounts.Attach(acc);
-                        ctx.Entry(acc).State = System.Data.Entity.EntityState.Modified;
-                    }
-                }
+                        tradeActionResponse.Transactions.ToList().ForEach(x => x.TradeOpportunity = opportunity);
+                        ctx.TradeOpportunityTransactions.AddRange(tradeActionResponse.Transactions);
 
-                ctx.TradeOpportunities.Attach(opportunity);
-                ctx.Entry(opportunity).State = System.Data.Entity.EntityState.Modified;
-                
-                await ctx.SaveChangesAsync();
+                        foreach (var acc in tradeActionResponse.AffectedAccounts)
+                        {
+                            ctx.TradeAccounts.Attach(acc);
+                            ctx.Entry(acc).State = System.Data.Entity.EntityState.Modified;
+                        }
+                    }
+
+                    ctx.TradeOpportunities.Attach(opportunity);
+                    ctx.Entry(opportunity).State = System.Data.Entity.EntityState.Modified;
+
+                    await ctx.SaveChangesAsync();
+                }
             }
+            finally
+            {
+                opportunity.LockingSemaphore.Release();
+            }
+            
         }
 
         private static async Task<TradeOpportunity> GetOrUpdateTradeOpportunity(Opportunity opportunity, bool IsSimulation)
@@ -186,7 +186,11 @@ namespace RBBot.Core.Engine
             // If the oppvalue is below treshold and doesn't exist yet, then ignore it. Else stop it.
             if (oppValue < SystemSetting.MinimumTradeOpportunityPercent)
             {
-                if (!tradeOpportunities.ContainsKey(opportunity.UniqueIdentifier))
+
+                TradeOpportunity tradOpp = null;
+                tradeOpportunities.TryGetValue(opportunity.UniqueIdentifier, out tradOpp);
+
+                if (tradOpp == null)
                 {
                     return null;
                 }
@@ -194,7 +198,7 @@ namespace RBBot.Core.Engine
                 {
                     var belowThresholdState = TradeOpportunityState.States.Single(x => x.Code == "EXP-BELOW");
                     newTradeValue.TradeOpportunityStateId = belowThresholdState.Id;
-                    await EndTradeOpportunity(tradeOpportunities[opportunity.UniqueIdentifier], belowThresholdState, newTradeValue);
+                    await EndTradeOpportunity(tradOpp, belowThresholdState, newTradeValue);
                     return null;
                 }
             }
@@ -223,56 +227,67 @@ namespace RBBot.Core.Engine
             tradeOpp.LatestOpportunity = opportunity;
             tradeOpp.LastestUpdate = DateTime.UtcNow;
 
-            // Otherwise the opportunity is still valid. 
-            // If this is a new opportunity, then we definitely need to save to DB.
-            if (isNewOpportunity)
+
+            // Before writing, we lock the semaphore.
+            await tradeOpp.LockingSemaphore.WaitAsync(); // Lock 
+
+            try
             {
-                
-                using (var ctx = new RBBotContext())
+                // Otherwise the opportunity is still valid. 
+                // If this is a new opportunity, then we definitely need to save to DB.
+                if (isNewOpportunity)
                 {
-                    ctx.TradeOpportunities.Add(tradeOpp);
 
-                    requirements.ForEach(x => { tradeOpp.TradeOpportunityRequirements.Add(x); });
 
-                    newTradeValue.TradeOpportunity = tradeOpp;
-
-                    //ctx.TradeOpportunityRequirements.AddRange(requirements);
-                    ctx.TradeOpportunityValues.Add(newTradeValue);
-                    await ctx.SaveChangesAsync();
-                }
-
-            }
-            else
-            {
-                // Else we take the requirements and see if anything changed.
-
-                var requirementsToAdd = new List<TradeOpportunityRequirement>();
-
-#warning I should be shot for this line
-                while(tradeOpp.Id == 0) // Keep yielding until it's created in db
-                    await Task.Delay(1000);
-
-                foreach(var req in requirements)
-                {
-                    var toReq = tradeOpp.TradeOpportunityRequirements.Where(x => x.ItemIdentifier == req.ItemIdentifier && x.TradeOpportunityRequirementTypeId == req.TradeOpportunityRequirementTypeId).OrderBy(x => x.Timestamp).LastOrDefault();
-
-                    if (toReq == null || toReq.RequirementMet != req.RequirementMet)
+                    using (var ctx = new RBBotContext())
                     {
-                        requirementsToAdd.Add(req);
-                        req.TradeOpportunityId = tradeOpp.Id;
+
+                        requirements.ForEach(x => { x.TradeOpportunity = tradeOpp; tradeOpp.TradeOpportunityRequirements.Add(x); });
+                        tradeOpp.TradeOpportunityValues.Add(newTradeValue);
+                        newTradeValue.TradeOpportunity = tradeOpp;
+
+                        ctx.TradeOpportunities.Add(tradeOpp);
+                        ctx.TradeOpportunityRequirements.AddRange(requirements);
+                        ctx.TradeOpportunityValues.Add(newTradeValue);
+
+
+                        await ctx.SaveChangesAsync();
+                    }
+
+                }
+                else
+                {
+                    // Else we take the requirements and see if anything changed.
+                    var requirementsToAdd = new List<TradeOpportunityRequirement>();
+
+                    foreach (var req in requirements)
+                    {
+                        var toReq = tradeOpp.TradeOpportunityRequirements.Where(x => x.ItemIdentifier == req.ItemIdentifier && x.TradeOpportunityRequirementType == req.TradeOpportunityRequirementType).OrderBy(x => x.Timestamp).LastOrDefault();
+
+                        if (toReq == null || toReq.RequirementMet != req.RequirementMet)
+                        {
+                            requirementsToAdd.Add(req);
+                            req.TradeOpportunityId = tradeOpp.Id;
+                        }
+                    }
+
+                    newTradeValue.TradeOpportunityId = tradeOpp.Id;
+
+                    using (var ctx = new RBBotContext())
+                    {
+                        ctx.TradeOpportunityRequirements.AddRange(requirementsToAdd);
+                        ctx.TradeOpportunityValues.Add(newTradeValue);
+                        await ctx.SaveChangesAsync();
                     }
                 }
 
-                newTradeValue.TradeOpportunityId = tradeOpp.Id;
-
-                using (var ctx = new RBBotContext())
-                {
-                    ctx.TradeOpportunityRequirements.AddRange(requirementsToAdd);
-                    ctx.TradeOpportunityValues.Add(newTradeValue);
-                    await ctx.SaveChangesAsync();
-                }
+            }
+            finally
+            {
+                tradeOpp.LockingSemaphore.Release();
             }
 
+            
             // Return the trade opportunity object. 
             return tradeOpp;
         }

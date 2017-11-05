@@ -68,7 +68,7 @@ namespace RBBot.RBConsole
                     var priceProcessors = new List<IMarketPriceProcessor>();
                     priceProcessors.Add(MarketPriceRecorder.Instance);
                     priceProcessors.Add(ArbPriceManager.Instance);
-                    priceProcessors.Add(TriangulationManager.Instance);
+                   // priceProcessors.Add(TriangulationManager.Instance);
 
                     
                     var integrations = await DataProcessingEngine.InitializeEngine();

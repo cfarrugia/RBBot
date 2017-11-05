@@ -14,6 +14,7 @@ namespace RBBot.Core.Models
         {
         }
 
+        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
@@ -39,6 +40,11 @@ namespace RBBot.Core.Models
         /// The average fee paid to do the transfer denominated in this currency itself.
         /// </summary>
         public decimal AverageTransferFee { get; set; }
+
+        /// <summary>
+        /// We use this in simulation to give out the equivalent of X USDs to each account!
+        /// </summary>
+        public decimal ApproximateUSDValue{ get; set; }
 
         public override string ToString()
         {

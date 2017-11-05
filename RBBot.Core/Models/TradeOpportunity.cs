@@ -6,6 +6,7 @@ namespace RBBot.Core.Models
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
+    using System.Threading;
 
     [Table("TradeOpportunity")]
     public partial class TradeOpportunity
@@ -15,13 +16,11 @@ namespace RBBot.Core.Models
         {
             TradeOpportunityTransactions = new HashSet<TradeOpportunityTransaction>();
             TradeOpportunityRequirements = new HashSet<TradeOpportunityRequirement>();
+            TradeOpportunityValues = new HashSet<TradeOpportunityValue>();
+            LockingSemaphore = new SemaphoreSlim(1); // Only one thread can lock!
         }
 
         public int Id { get; set; }
-
-        public int TradeOpportunityTypeId { get; set; }
-
-        public int CurrencyId { get; set; }
 
         public bool IsExecuted { get; set; } = false;
 
@@ -32,21 +31,32 @@ namespace RBBot.Core.Models
 
         public DateTime? ExecutedTime { get; set; }
 
-        public int TradeOpportunityStateId { get; set; }
 
+        public int TradeOpportunityTypeId { get; set; }
+        public int TradeOpportunityStateId { get; set; }
+        public int CurrencyId { get; set; }
+
+
+        [ForeignKey("TradeOpportunityTypeId")]
         public virtual TradeOpportunityType TradeOpportunityType { get; set; }
 
+        [ForeignKey("TradeOpportunityStateId")]
         public virtual TradeOpportunityState TradeOpportunityState { get; set; }
 
-        public virtual string Description { get; set; }
+        [ForeignKey("CurrencyId")]
+        public virtual Currency Currency { get; set; }
 
-        public virtual Currency Currency{ get; set; }
+        public virtual string Description { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TradeOpportunityTransaction> TradeOpportunityTransactions { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TradeOpportunityRequirement> TradeOpportunityRequirements { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<TradeOpportunityValue> TradeOpportunityValues { get; set; }
+
 
         /// <summary>
         /// This is a non-mapped property storing the latest opportunity object.
@@ -59,6 +69,9 @@ namespace RBBot.Core.Models
 
         [NotMapped]
         public bool IsExecuting { get; set; } = false;
-        
+
+        [NotMapped]
+        public SemaphoreSlim LockingSemaphore { get; private set;}
+
     }
 }
