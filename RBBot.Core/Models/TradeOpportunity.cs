@@ -71,6 +71,10 @@ namespace RBBot.Core.Models
         public bool IsExecuting { get; set; } = false;
 
         [NotMapped]
+        public bool IsDbExecutedWritten { get; set; } = false;
+
+
+        [NotMapped]
         public SemaphoreSlim LockingSemaphore { get; private set;}
 
     }

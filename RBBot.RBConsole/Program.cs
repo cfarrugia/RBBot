@@ -92,20 +92,25 @@ namespace RBBot.RBConsole
                         var state = TradeOpportunityState.States.Where(x => x.Id == opp.TradeOpportunityStateId).Single().Code;
                         var type = TradeOpportunityType.Types.Where(x => x.Id == opp.TradeOpportunityTypeId).Single().Code;
 
-                        Console.WriteLine($"Opp: {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetValue():0.00}");
+                        Console.WriteLine($"Opp: {opp.LatestOpportunity.UniqueIdentifier} | {state} | {opp.LatestOpportunity.GetMarginValuePercent():0.00}%");
                     });
 
-                    // Subscribe to trade.
+                    // Subscribe to trade. We take only arbs over 10cents of a dollar!
 
                     tradeableStream
-                        .Where(x => x.LatestOpportunity.RequirementsMet && x.LatestOpportunity.MaximumPossibleTransactionAmount > 0m)
+                        .Where(x => x.LatestOpportunity.RequirementsMet && x.LatestOpportunity.GetMaximumAmountThatCanBeTransacted() > 0m && x.LatestOpportunity.EstimateMaxUSDValue() > 0.1m)
                         //.Select(tr => Observable.FromAsync<bool>(OpportunityScoreEngine.ExecuteTradeOpportunity()))
                         .SubscribeOn(s)
                         .Subscribe((opp) =>
                         {
                             try
                             {
-                                Task.Run(() => OpportunityScoreEngine.ExecuteTradeOpportunity(opp, isSimulation));
+
+                                Console.WriteLine($"Executing Opp: {opp.LatestOpportunity.UniqueIdentifier} at profit USD {opp.LatestOpportunity.EstimateMaxUSDValue():0.00}");
+
+                                var maxTx = opp.LatestOpportunity.GetMaximumAmountThatCanBeTransacted();
+
+                                Task.Run(() => OpportunityScoreEngine.ExecuteTradeOpportunity(opp, maxTx, isSimulation));
 
                             }
                             catch(Exception ex)

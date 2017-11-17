@@ -168,19 +168,17 @@ namespace RBBot.Core.Exchanges.Bitflyer
             throw new NotImplementedException();
         }
 
-        public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
+        public Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, Currency orderAmountCurrency, ExchangeTradePair tradePair)
         {
             throw new NotImplementedException();
         }
 
-        public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair)
+        public TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, Currency orderAmountCurrency, ExchangeTradePair tradePair)
         {
 #warning watch out ... this was copied and pasted
-            // GDAX uses the "from" pair to calculate fees
-            // Otherwise we need to convert first. The is equal to the order amount * fee percent.
-            var fee = orderAmount * tradePair.FeePercent;
-
-            return new TransactionFee() { Amount = fee, Currency = tradePair.TradePair.FromCurrency };
+            // Check what's the preferred currency (BTC) and take 0.25% of it. 
+            var fee = (orderAmountCurrency == SystemSetting.PreferredCyptoCurrency ? 1.0m : tradePair.LatestPrice) * orderAmount * tradePair.FeePercent / 100m;
+            return new TransactionFee() { Amount = fee, Currency = SystemSetting.PreferredCyptoCurrency };
         }
     }
 

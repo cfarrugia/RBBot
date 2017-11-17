@@ -9,7 +9,6 @@ namespace RBBot.Core.Engine.Trading
 {
     public class TradeActionResponse
     {
-        public TradeAccount[] AffectedAccounts { get; set; }
         public TradeOpportunityTransaction[] Transactions { get; set; }
 
         public bool ExecutionSuccessful { get; set; } = true;

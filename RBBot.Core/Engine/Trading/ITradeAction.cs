@@ -14,6 +14,12 @@ namespace RBBot.Core.Engine.Trading
         /// </summary>
         ITradeAction[] ChildrenActions { get; set; }
 
+
+        /// <summary>
+        /// This is the list of accounts affected by this transaction
+        /// </summary>
+        TradeAccount[] AffectedAccounts { get; }
+
         /// <summary>
         /// Flags whether it is safe to run children in parallel.
         /// </summary>

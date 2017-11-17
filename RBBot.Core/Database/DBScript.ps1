@@ -1,4 +1,7 @@
-﻿[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SMOExtended")
+﻿[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.ConnectionInfo');
+[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.Management.Sdk.Sfc');
+[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SMO")
+[void][System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SMOExtended")
 
 $serverName = "localhost\sql2016"
 $scriptPath = "C:\Projects\RBBot\RBBot.Core\Database\"
@@ -6,7 +9,7 @@ $databaseName = "RBBOT"
 $sqlServer = new-object("Microsoft.SqlServer.Management.Smo.Server") $serverName
 $sqlDb = $sqlServer.Databases[$databasename]
 
-<#
+
 $options = new-object ("Microsoft.SqlServer.Management.Smo.ScriptingOptions")
 $options.ExtendedProperties = $true
 $options.DRIAll = $true
@@ -20,7 +23,7 @@ $options.ToFileOnly = $true
 $transfer = new-object ("Microsoft.SqlServer.Management.Smo.Transfer") $sqlDb
 $transfer.options = $options
 $transfer.ScriptTransfer()
-#>
+
 # Schema is done!
 
 $Objects = $sqlDb.Tables

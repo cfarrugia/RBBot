@@ -13,6 +13,8 @@ namespace RBBot.Core.Engine.Trading.Actions
     {
         public Currency BaseCurrency { get; private set; }
 
+        public TradeAccount[] AffectedAccounts { get { return new TradeAccount[] { this.FromAccount, this.ToAccount }; } }
+
         public decimal EstimatedCost { get; private set; }
 
         public TimeSpan EstimatedTimeToExecute { get; private set; }
@@ -52,7 +54,6 @@ namespace RBBot.Core.Engine.Trading.Actions
 
             var resp = new TradeActionResponse()
             {
-                AffectedAccounts = new TradeAccount[] { this.FromAccount, this.ToAccount },
                 ExecutionSuccessful = true,
                 Transactions = null
             };

@@ -9,6 +9,8 @@ namespace RBBot.Core.Engine.Trading
 {
     public class NullAction : ITradeAction
     {
+        public TradeAccount[] AffectedAccounts { get { return new TradeAccount[] {}; }}
+
         public Currency BaseCurrency { get { return null; } }
 
         public ITradeAction[] ChildrenActions { get; set; }

@@ -58,9 +58,9 @@ namespace RBBot.Core.Engine.Trading.Arb
 
             // Take tuples with lower price as the first item. 
             var opportunities =
-                otherExchangePairs.Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(x, changedPair, CalculateOpportunityMargin(x, changedPair)))
+                otherExchangePairs.Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(x, changedPair, CalculateOpportunityMarginPercent(x, changedPair)))
                 .Union(
-                otherExchangePairs.Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(changedPair, x, CalculateOpportunityMargin(x, changedPair))))
+                otherExchangePairs.Select(x => new Tuple<ExchangeTradePair, ExchangeTradePair, decimal>(changedPair, x, CalculateOpportunityMarginPercent(x, changedPair))))
                 .Select(x => new ArbOpportunity(x.Item1, x.Item2))
                 .ToList();
             //            
@@ -76,7 +76,7 @@ namespace RBBot.Core.Engine.Trading.Arb
             return lowerPricePair.TradePair.ToString() + " - " + lowerPricePair.Exchange.ToString() + " -> " + higherPricePair.Exchange.ToString();
         }
 
-        internal static decimal CalculateOpportunityMargin(ExchangeTradePair lowerPricePair, ExchangeTradePair higherPricePair)
+        internal static decimal CalculateOpportunityMarginPercent(ExchangeTradePair lowerPricePair, ExchangeTradePair higherPricePair)
         {
             // The opportunity is calculated by comparing the higher price with the lower price.
             decimal marginPercent = ((higherPricePair.LatestPrice / lowerPricePair.LatestPrice) - 1m) * 100m;

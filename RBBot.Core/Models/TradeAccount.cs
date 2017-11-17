@@ -5,6 +5,7 @@ namespace RBBot.Core.Models
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
+    using System.Threading;
 
     [Table("TradeAccount")]
     public partial class TradeAccount
@@ -30,6 +31,7 @@ namespace RBBot.Core.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TradeAccount()
         {
+            this.LockingSemaphore = new SemaphoreSlim(1); // Only one thread can update the trade account at one time.
         }
 
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -50,5 +52,8 @@ namespace RBBot.Core.Models
         public virtual Currency Currency { get; set; }
 
         public virtual Exchange Exchange { get; set; }
+
+        [NotMapped]
+        public SemaphoreSlim LockingSemaphore { get; private set; }
     }
 }

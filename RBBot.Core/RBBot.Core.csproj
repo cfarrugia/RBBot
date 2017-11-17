@@ -413,6 +413,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Database\DBScript.ps1" />
     <None Include="edge\x64\edge_nativeclr.node">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -422,6 +423,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Database\analysis-query.sql" />
+    <Content Include="Database\db-lookupdata.sql" />
+    <Content Include="Database\db-schema.sql" />
+    <Content Include="Database\deletion-script.sql" />
     <Content Include="edge\double_edge.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

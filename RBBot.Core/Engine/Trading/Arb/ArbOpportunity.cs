@@ -139,8 +139,8 @@ namespace RBBot.Core.Engine.Trading.Arb
             {
                 ChildrenActions = new ITradeAction[]
                 {
-                    new ExchangeOrderAction(this.LowerPricePair, ExchangeOrderType.Buy, amount),
-                    new ExchangeOrderAction(this.HigherPricePair, ExchangeOrderType.Sell, amount)
+                    new ExchangeOrderAction(this.LowerPricePair, ExchangeOrderType.Buy, amount, this.OpportunityBaseCurrency),
+                    new ExchangeOrderAction(this.HigherPricePair, ExchangeOrderType.Sell, amount, this.OpportunityBaseCurrency)
                 },
                 ExecuteChildrenInParallel = true
             };
@@ -148,9 +148,9 @@ namespace RBBot.Core.Engine.Trading.Arb
 
        
 
-        public override decimal GetValue()
+        public override decimal GetMarginValuePercent()
         {
-            return ArbPriceManager.CalculateOpportunityMargin(this.LowerPricePair, this.HigherPricePair);
+            return ArbPriceManager.CalculateOpportunityMarginPercent(this.LowerPricePair, this.HigherPricePair);
         }
 
         internal ArbOpportunity(ExchangeTradePair lowerPricePair, ExchangeTradePair higherPricePair)

@@ -15,9 +15,9 @@ namespace RBBot.Core.Exchanges
 
         Exchange Exchange { get; }
 
-        Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair);
+        Task<ExchangeOrderResponse> PlaceOrder(ExchangeOrderType orderType, decimal orderAmount, Currency orderAmountCurrency, ExchangeTradePair tradePair);
 
-        TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, ExchangeTradePair tradePair);
+        TransactionFee EstimateTransactionFee(ExchangeOrderType orderType, decimal orderAmount, Currency orderCurrency, ExchangeTradePair tradePair);
 
     }
 }

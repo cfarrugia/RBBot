@@ -70,18 +70,26 @@ namespace RBBot.Core.Engine
             return tradeStream;
         }
 
-        public static async Task ExecuteTradeOpportunity(TradeOpportunity opportunity, bool isSimulation = true)
+        public static async Task ExecuteTradeOpportunity(TradeOpportunity opportunity, decimal transactionAmount, bool isSimulation = true)
         {
             // if the opportunity is being executed, return now.
             if (opportunity.IsExecuting || opportunity.IsExecuted) return;
+
+            TradeAccount[] affectedAccounts = null;
 
             try
             {
                 
                 opportunity.IsExecuting = true;
-                var result = await opportunity.LatestOpportunity.ExecuteOpportunity(opportunity.LatestOpportunity.MaximumPossibleTransactionAmount, true);
+                affectedAccounts = opportunity.LatestOpportunity.GetAffectedAccounts();
 
-               
+                // Lock all affected accounts so nobody messes with them as we're executing!
+                foreach (var acc in affectedAccounts)
+                    await acc.LockingSemaphore.WaitAsync();
+
+
+                var result = await opportunity.LatestOpportunity.ExecuteOpportunity(transactionAmount, true);
+
                 // If execution was ok, then add the transactions. Otherwise signal a failed execution.
                 var finalStateCode = isSimulation ? "EXEC-SIM" : "EXEC-REAL";
                 if (!result.ExecutionSuccessful)
@@ -102,36 +110,41 @@ namespace RBBot.Core.Engine
 
                 Console.WriteLine();
             }
+            finally
+            {
+                // Release all accounts
+                if (affectedAccounts != null)
+                    foreach (var acc in affectedAccounts)
+                        acc.LockingSemaphore.Release();
+            }
 
         }
 
         public static async Task EndTradeOpportunity(TradeOpportunity opportunity, TradeOpportunityState finalState, TradeOpportunityValue finalOpportunityValue = null, TradeActionResponse tradeActionResponse = null)
         {
-            // Try removing the opportunity from the dictionary.
-            TradeOpportunity time = null;
-            bool removedSuccess = tradeOpportunities.TryRemove(opportunity.LatestOpportunity.UniqueIdentifier, out time);
-
-            if (removedSuccess == false) // If the opportunity couldn't be removed, then return. 
-                return;
-
-            opportunity.TradeOpportunityStateId = finalState.Id;
-            opportunity.EndTime = DateTime.UtcNow;
-
-            // Call expired event.
-            if (OnOpportunityExpired != null) OnOpportunityExpired(opportunity);
-
+            // Note: This was initially written in a way that I first remove the trade opp from the concurrent dictionary and then write to the DB. 
+            // It was wrong as by the time we got back a response from the db, other same opportunities were being written! This caused a lot of same opportunities to be written! 
+            // Therefore what we do here is first we singal the removal from the database and only once this is done we try to remove it from the concurrent dictionary. 
+            // For this reason the trade opportunity is immediately locked.
 
 
             // This is the part we persist to the db. We first wait for 
             // any possible semaphore on the opportunity and release it as soon as we're done. 
 
             await opportunity.LockingSemaphore.WaitAsync();
-            
+
+
+            // It might have happened that this opportunity was already written to the db. Ignore this call.
+            if (opportunity.IsDbExecutedWritten) return;
+
             try
             {
                 // Persist to db
                 using (var ctx = new RBBotContext())
                 {
+                    opportunity.TradeOpportunityStateId = finalState.Id;
+                    opportunity.EndTime = DateTime.UtcNow;
+
                     // If a final value is specified, add it now.
                     if (finalOpportunityValue != null)
                     {
@@ -145,7 +158,7 @@ namespace RBBot.Core.Engine
                         tradeActionResponse.Transactions.ToList().ForEach(x => x.TradeOpportunity = opportunity);
                         ctx.TradeOpportunityTransactions.AddRange(tradeActionResponse.Transactions);
 
-                        foreach (var acc in tradeActionResponse.AffectedAccounts)
+                        foreach (var acc in opportunity.LatestOpportunity.GetAffectedAccounts())
                         {
                             ctx.TradeAccounts.Attach(acc);
                             ctx.Entry(acc).State = System.Data.Entity.EntityState.Modified;
@@ -156,13 +169,21 @@ namespace RBBot.Core.Engine
                     ctx.Entry(opportunity).State = System.Data.Entity.EntityState.Modified;
 
                     await ctx.SaveChangesAsync();
+
+                    opportunity.IsDbExecutedWritten = true; // This is an unmapped property that is used to make sure that if by any chance this trade opportunity is tried to be ended again, it won't succeed!
+
+                    // Now that we've written to the db, try removing it from the concurrent dictionary.
+                    TradeOpportunity time = null;
+                    bool removedSuccess = tradeOpportunities.TryRemove(opportunity.LatestOpportunity.UniqueIdentifier, out time);
+
+                    if ((removedSuccess) && (OnOpportunityExpired != null))  // If the opportunity could be removed, then raise event!. 
+                        OnOpportunityExpired(opportunity);
                 }
             }
             finally
             {
                 opportunity.LockingSemaphore.Release();
             }
-            
         }
 
         private static async Task<TradeOpportunity> GetOrUpdateTradeOpportunity(Opportunity opportunity, bool IsSimulation)
@@ -173,7 +194,7 @@ namespace RBBot.Core.Engine
             //
             string stateCode = opportunity.RequirementsMet ? "RQ-MET" : "RQ-MISSING";
 
-            decimal oppValue = opportunity.GetValue();
+            decimal oppValue = opportunity.GetMarginValuePercent();
 
             // Create the trade value;
             var newTradeValue = new TradeOpportunityValue()

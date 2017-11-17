@@ -19,7 +19,7 @@ namespace RBBot.Core.Engine.Trading
         /// This is the current value as a percentage of the base trade currency of this opportunity.
         /// This amount already excludes any fees involved in doing the arb. 
         /// </summary>
-        public abstract decimal GetValue();
+        public abstract decimal GetMarginValuePercent();
 
         /// <summary>
         /// This is the base currency of the opportunity. Use this with the margin to calculate actual monitary value.
@@ -69,6 +69,39 @@ namespace RBBot.Core.Engine.Trading
         }
 
 
+        public decimal EstimateMaxUSDValue()
+        {
+            // The transaction amount is the max possible.
+            var txAmount = this.GetMaximumAmountThatCanBeTransacted();
+
+            // Calculate profit.
+            var profit = this.MaximumPossibleTransactionAmount * this.GetMarginValuePercent()  / 100m * this.OpportunityBaseCurrency.ApproximateUSDValue;
+
+            return profit;
+        }
+
+
+        /// <summary>
+        /// Gets list of affected accounts in the opportunity object.
+        /// </summary>
+        public TradeAccount[] GetAffectedAccounts()
+        {
+            List<TradeAccount> accounts = new List<TradeAccount>();
+
+            Action<ITradeAction> executeNode = null;
+            executeNode = (node) =>
+            {
+                if (node.AffectedAccounts != null) accounts.AddRange(node.AffectedAccounts);
+                if (node.ChildrenActions != null)
+                    foreach (var child in node.ChildrenActions)
+                        executeNode(child);
+            };
+
+            executeNode(this.GetTradeAction(0));
+
+            return accounts.Distinct().ToArray();
+        }
+
         /// <summary>
         /// This method is used to actually execute the opportunity
         /// </summary>
@@ -98,7 +131,6 @@ namespace RBBot.Core.Engine.Trading
                         if ((resp != null) && resp.ExecutionSuccessful)
                         {
                             if (resp.Transactions != null) transactions.AddRange(resp.Transactions);
-                            if (resp.AffectedAccounts != null) accounts.AddRange(resp.AffectedAccounts);
                         }
                     }
 
@@ -123,7 +155,6 @@ namespace RBBot.Core.Engine.Trading
                         if ((resp != null) && resp.ExecutionSuccessful)
                         {
                             if (resp.Transactions != null) transactions.AddRange(resp.Transactions);
-                            if (resp.AffectedAccounts != null) accounts.AddRange(resp.AffectedAccounts);
                         }
                     }
 
@@ -145,8 +176,7 @@ namespace RBBot.Core.Engine.Trading
                 return new TradeActionResponse()
                 {
                     ExecutionSuccessful = executionOk,
-                    Transactions = transactions.ToArray(),
-                    AffectedAccounts = accounts.Distinct().ToArray()
+                    Transactions = transactions.ToArray()
                 };
             }
             finally

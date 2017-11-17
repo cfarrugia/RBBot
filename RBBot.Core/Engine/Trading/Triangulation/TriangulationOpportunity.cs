@@ -69,15 +69,18 @@ namespace RBBot.Core.Engine.Trading.Triangulation
 
         public override ITradeAction GetTradeAction(decimal amount)
         {
+            throw new NotImplementedException("The following line doesn't function properly. watch out!");
+
+
             return new NullAction()
             {
                 // The children actions will be a buy sell if reversed and buy if not.
-                ChildrenActions = this.triangulation.Edges.Select(x => new ExchangeOrderAction(x.CurrentPrice, x.IsReversed ? ExchangeOrderType.Sell : ExchangeOrderType.Buy, amount)).ToArray(),
+                ChildrenActions = this.triangulation.Edges.Select(x => new ExchangeOrderAction(x.CurrentPrice, x.IsReversed ? ExchangeOrderType.Sell : ExchangeOrderType.Buy, amount, x.CurrentPrice.TradePair.FromCurrency)).ToArray(),
                 ExecuteChildrenInParallel = false // We need to sequence this in order!
             };
         }
 
-        public override decimal GetValue()
+        public override decimal GetMarginValuePercent()
         {
             return this.triangulation.GetValue();
         }
